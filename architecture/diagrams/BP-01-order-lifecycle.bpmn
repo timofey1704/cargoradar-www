@@ -1,0 +1,417 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Defs_BP01" targetNamespace="https://example.com/bpmn/order-lifecycle" exporter="bpmn-js (https://demo.bpmn.io)" exporterVersion="18.25.1">
+  <bpmn:collaboration id="Collab_BP01">
+    <bpmn:participant id="CustomerPool" name="Заказчик" processRef="CustomerProcess" />
+    <bpmn:participant id="SystemPool" name="Система" processRef="SystemProcess" />
+    <bpmn:participant id="CarrierPool" name="Перевозчик" processRef="CarrierProcess" />
+    <bpmn:messageFlow id="MF_publish" name="заявка опубликована" sourceRef="C_publish" targetRef="S_start" />
+    <bpmn:messageFlow id="MF_offer" name="заказ доступен" sourceRef="S_offer" targetRef="D_start" />
+    <bpmn:messageFlow id="MF_response" name="отклик" sourceRef="D_respond" targetRef="S_response" />
+    <bpmn:messageFlow id="MF_responseCustomer" name="отклик" sourceRef="S_sendResponse" targetRef="C_response" />
+    <bpmn:messageFlow id="MF_accept" name="принятие" sourceRef="C_accept" targetRef="S_accept" />
+    <bpmn:messageFlow id="MF_acceptCarrier" name="заказ принят" sourceRef="S_sendAccept" targetRef="D_accept" />
+    <bpmn:messageFlow id="MF_done" name="заказ выполнен" sourceRef="D_done" targetRef="S_done" />
+    <bpmn:messageFlow id="MF_notify" name="уведомление" sourceRef="S_notify" targetRef="C_done" />
+    <bpmn:messageFlow id="MF_confirm" name="подтверждение" sourceRef="C_confirm" targetRef="S_confirm" />
+  </bpmn:collaboration>
+  <bpmn:process id="CustomerProcess" isExecutable="false">
+    <bpmn:startEvent id="C_start" name="Начало" />
+    <bpmn:userTask id="C_create" name="Создать заявку" />
+    <bpmn:userTask id="C_publish" name="Опубликовать заказ" />
+    <bpmn:intermediateCatchEvent id="C_response" name="Получить отклик" />
+    <bpmn:userTask id="C_negotiate" name="Участвовать в торге" />
+    <bpmn:userTask id="C_accept" name="Принять перевозчика" />
+    <bpmn:intermediateCatchEvent id="C_done" name="Получить уведомление" />
+    <bpmn:userTask id="C_confirm" name="Подтвердить выполнение" />
+    <bpmn:endEvent id="C_end" name="Завершено" />
+    <bpmn:sequenceFlow id="C1" sourceRef="C_start" targetRef="C_create" />
+    <bpmn:sequenceFlow id="C2" sourceRef="C_create" targetRef="C_publish" />
+    <bpmn:sequenceFlow id="C3" sourceRef="C_publish" targetRef="C_response" />
+    <bpmn:sequenceFlow id="C4" sourceRef="C_response" targetRef="C_negotiate" />
+    <bpmn:sequenceFlow id="C5" sourceRef="C_negotiate" targetRef="C_accept" />
+    <bpmn:sequenceFlow id="C6" sourceRef="C_accept" targetRef="C_done" />
+    <bpmn:sequenceFlow id="C7" sourceRef="C_done" targetRef="C_confirm" />
+    <bpmn:sequenceFlow id="C8" sourceRef="C_confirm" targetRef="C_end" />
+  </bpmn:process>
+  <bpmn:process id="SystemProcess" isExecutable="false">
+    <bpmn:startEvent id="S_start" name="Получить заявку" />
+    <bpmn:serviceTask id="S_publish" name="Опубликовать заказ" />
+    <bpmn:sendTask id="S_offer" name="Показать заказ перевозчикам" />
+    <bpmn:intermediateCatchEvent id="S_response" name="Получить отклик" />
+    <bpmn:serviceTask id="S_trade" name="Организовать торг" />
+    <bpmn:sendTask id="S_sendResponse" name="Передать отклик заказчику" />
+    <bpmn:intermediateCatchEvent id="S_accept" name="Получить принятие" />
+    <bpmn:serviceTask id="S_execution" name="Зафиксировать выполнение" />
+    <bpmn:intermediateCatchEvent id="S_confirm" name="Получить подтверждение" />
+    <bpmn:endEvent id="S_end" name="Конец" />
+    <bpmn:serviceTask id="S_complete" name="Завершить заказ" />
+    <bpmn:sendTask id="S_notify" name="Уведомить заказчика" />
+    <bpmn:intermediateCatchEvent id="S_done" name="Получить отметку о выполнении" />
+    <bpmn:sendTask id="S_sendAccept" name="Передать заказ перевозчику" />
+    <bpmn:sequenceFlow id="S1" sourceRef="S_start" targetRef="S_publish" />
+    <bpmn:sequenceFlow id="S2" sourceRef="S_publish" targetRef="S_offer" />
+    <bpmn:sequenceFlow id="S3" sourceRef="S_offer" targetRef="S_response" />
+    <bpmn:sequenceFlow id="S4" sourceRef="S_response" targetRef="S_trade" />
+    <bpmn:sequenceFlow id="S5" sourceRef="S_trade" targetRef="S_sendResponse" />
+    <bpmn:sequenceFlow id="S6" sourceRef="S_sendResponse" targetRef="S_accept" />
+    <bpmn:sequenceFlow id="S7" sourceRef="S_accept" targetRef="S_execution" />
+    <bpmn:sequenceFlow id="S8" sourceRef="S_execution" targetRef="S_sendAccept" />
+    <bpmn:sequenceFlow id="S11" sourceRef="S_notify" targetRef="S_confirm" />
+    <bpmn:sequenceFlow id="S12" sourceRef="S_confirm" targetRef="S_complete" />
+    <bpmn:sequenceFlow id="S13" sourceRef="S_complete" targetRef="S_end" />
+    <bpmn:sequenceFlow id="S10" sourceRef="S_done" targetRef="S_notify" />
+    <bpmn:sequenceFlow id="S9" sourceRef="S_sendAccept" targetRef="S_done" />
+  </bpmn:process>
+  <bpmn:process id="CarrierProcess" isExecutable="false">
+    <bpmn:startEvent id="D_start" name="Заказ доступен" />
+    <bpmn:userTask id="D_view" name="Просмотреть заказ" />
+    <bpmn:sendTask id="D_respond" name="Откликнуться" />
+    <bpmn:userTask id="D_trade" name="Участвовать в торге" />
+    <bpmn:intermediateCatchEvent id="D_accept" name="Получить заказ" />
+    <bpmn:userTask id="D_execute" name="Выполнить заказ" />
+    <bpmn:sendTask id="D_done" name="Отметить «Заказ выполнен»" />
+    <bpmn:endEvent id="D_end" name="Конец" />
+    <bpmn:sequenceFlow id="D1" sourceRef="D_start" targetRef="D_view" />
+    <bpmn:sequenceFlow id="D2" sourceRef="D_view" targetRef="D_respond" />
+    <bpmn:sequenceFlow id="D3" sourceRef="D_respond" targetRef="D_trade" />
+    <bpmn:sequenceFlow id="D4" sourceRef="D_trade" targetRef="D_accept" />
+    <bpmn:sequenceFlow id="D5" sourceRef="D_accept" targetRef="D_execute" />
+    <bpmn:sequenceFlow id="D6" sourceRef="D_execute" targetRef="D_done" />
+    <bpmn:sequenceFlow id="D7" sourceRef="D_done" targetRef="D_end" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_BP01">
+    <bpmndi:BPMNPlane id="Plane_BP01" bpmnElement="Collab_BP01">
+      <bpmndi:BPMNShape id="CustomerPool_di" bpmnElement="CustomerPool" isHorizontal="true">
+        <dc:Bounds x="160" y="60" width="1740" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="C_start">
+        <dc:Bounds x="240" y="117" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="239" y="153" width="39" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="C_create">
+        <dc:Bounds x="320" y="95" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="C_publish">
+        <dc:Bounds x="480" y="95" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="C_response">
+        <dc:Bounds x="720" y="117" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="695" y="93" width="85" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="C_negotiate">
+        <dc:Bounds x="830" y="95" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="C_accept">
+        <dc:Bounds x="1010" y="95" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="C_done">
+        <dc:Bounds x="1280" y="117" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1263" y="79.5" width="69" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="C_confirm">
+        <dc:Bounds x="1390" y="95" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="C_end">
+        <dc:Bounds x="1590" y="117" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1579" y="153" width="58" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="C1_di" bpmnElement="C1">
+        <di:waypoint x="276" y="135" />
+        <di:waypoint x="320" y="135" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="C2_di" bpmnElement="C2">
+        <di:waypoint x="430" y="135" />
+        <di:waypoint x="480" y="135" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="C3_di" bpmnElement="C3">
+        <di:waypoint x="590" y="135" />
+        <di:waypoint x="720" y="135" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="C4_di" bpmnElement="C4">
+        <di:waypoint x="756" y="135" />
+        <di:waypoint x="830" y="135" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="C5_di" bpmnElement="C5">
+        <di:waypoint x="940" y="135" />
+        <di:waypoint x="1010" y="135" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="C6_di" bpmnElement="C6">
+        <di:waypoint x="1120" y="135" />
+        <di:waypoint x="1280" y="135" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="C7_di" bpmnElement="C7">
+        <di:waypoint x="1316" y="135" />
+        <di:waypoint x="1390" y="135" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="C8_di" bpmnElement="C8">
+        <di:waypoint x="1510" y="135" />
+        <di:waypoint x="1590" y="135" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="SystemPool_di" bpmnElement="SystemPool" isHorizontal="true">
+        <dc:Bounds x="160" y="250" width="1740" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="S_start">
+        <dc:Bounds x="240" y="307" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="216" y="343" width="85" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="S_publish">
+        <dc:Bounds x="320" y="285" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="S_offer">
+        <dc:Bounds x="480" y="285" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="S_response">
+        <dc:Bounds x="720" y="307" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="695" y="283" width="85" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="S_trade">
+        <dc:Bounds x="830" y="285" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="S_sendResponse">
+        <dc:Bounds x="1010" y="285" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="S_accept">
+        <dc:Bounds x="1160" y="307" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1154" y="343" width="49" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="S_execution">
+        <dc:Bounds x="1220" y="285" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="S_confirm">
+        <dc:Bounds x="1670" y="307" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1648" y="343" width="80" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="S_end">
+        <dc:Bounds x="1858" y="313" width="24" height="24" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1854" y="337" width="32" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="S_complete">
+        <dc:Bounds x="1730" y="285" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="S_notify">
+        <dc:Bounds x="1550" y="285" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="S_done">
+        <dc:Bounds x="1492" y="307" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1478" y="257" width="63" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="S_sendAccept">
+        <dc:Bounds x="1350" y="285" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="S1_di" bpmnElement="S1">
+        <di:waypoint x="276" y="325" />
+        <di:waypoint x="320" y="325" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="S2_di" bpmnElement="S2">
+        <di:waypoint x="430" y="325" />
+        <di:waypoint x="480" y="325" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="S3_di" bpmnElement="S3">
+        <di:waypoint x="600" y="325" />
+        <di:waypoint x="720" y="325" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="S4_di" bpmnElement="S4">
+        <di:waypoint x="756" y="325" />
+        <di:waypoint x="830" y="325" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="S5_di" bpmnElement="S5">
+        <di:waypoint x="940" y="325" />
+        <di:waypoint x="1010" y="325" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="S6_di" bpmnElement="S6">
+        <di:waypoint x="1130" y="325" />
+        <di:waypoint x="1160" y="325" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="S7_di" bpmnElement="S7">
+        <di:waypoint x="1196" y="325" />
+        <di:waypoint x="1220" y="325" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="S8_di" bpmnElement="S8">
+        <di:waypoint x="1320" y="325" />
+        <di:waypoint x="1350" y="325" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="S9_di" bpmnElement="S9">
+        <di:waypoint x="1470" y="325" />
+        <di:waypoint x="1492" y="325" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="S10_di" bpmnElement="S10">
+        <di:waypoint x="1528" y="325" />
+        <di:waypoint x="1550" y="325" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="S11_di" bpmnElement="S11">
+        <di:waypoint x="1650" y="325" />
+        <di:waypoint x="1670" y="325" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="S12_di" bpmnElement="S12">
+        <di:waypoint x="1706" y="325" />
+        <di:waypoint x="1730" y="325" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="S13_di" bpmnElement="S13">
+        <di:waypoint x="1830" y="325" />
+        <di:waypoint x="1858" y="325" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="CarrierPool_di" bpmnElement="CarrierPool" isHorizontal="true">
+        <dc:Bounds x="160" y="440" width="1740" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="D_start">
+        <dc:Bounds x="500" y="497" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="479" y="533" width="79" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="D_view">
+        <dc:Bounds x="580" y="475" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="D_respond">
+        <dc:Bounds x="760" y="475" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="D_trade">
+        <dc:Bounds x="940" y="475" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="D_accept">
+        <dc:Bounds x="1320" y="497" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1299" y="533" width="79" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="D_execute">
+        <dc:Bounds x="1400" y="475" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="D_done">
+        <dc:Bounds x="1560" y="475" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="D_end">
+        <dc:Bounds x="1740" y="497" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1742" y="533" width="32" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="D1_di" bpmnElement="D1">
+        <di:waypoint x="536" y="515" />
+        <di:waypoint x="580" y="515" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="D2_di" bpmnElement="D2">
+        <di:waypoint x="690" y="515" />
+        <di:waypoint x="760" y="515" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="D3_di" bpmnElement="D3">
+        <di:waypoint x="870" y="515" />
+        <di:waypoint x="940" y="515" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="D4_di" bpmnElement="D4">
+        <di:waypoint x="1050" y="515" />
+        <di:waypoint x="1320" y="515" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="D5_di" bpmnElement="D5">
+        <di:waypoint x="1356" y="515" />
+        <di:waypoint x="1400" y="515" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="D6_di" bpmnElement="D6">
+        <di:waypoint x="1510" y="515" />
+        <di:waypoint x="1560" y="515" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="D7_di" bpmnElement="D7">
+        <di:waypoint x="1690" y="515" />
+        <di:waypoint x="1740" y="515" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MF_publish_di" bpmnElement="MF_publish">
+        <di:waypoint x="535" y="175" />
+        <di:waypoint x="535" y="241" />
+        <di:waypoint x="258" y="241" />
+        <di:waypoint x="258" y="307" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="334" y="216" width="72" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MF_offer_di" bpmnElement="MF_offer">
+        <di:waypoint x="518" y="365" />
+        <di:waypoint x="518" y="497" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="479" y="413" width="78" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MF_response_di" bpmnElement="MF_response">
+        <di:waypoint x="815" y="475" />
+        <di:waypoint x="815" y="409" />
+        <di:waypoint x="738" y="409" />
+        <di:waypoint x="738" y="343" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="753" y="413" width="34" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MF_responseCustomer_di" bpmnElement="MF_responseCustomer">
+        <di:waypoint x="1070" y="285" />
+        <di:waypoint x="1070" y="219" />
+        <di:waypoint x="738" y="219" />
+        <di:waypoint x="738" y="153" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="901" y="223" width="34" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MF_accept_di" bpmnElement="MF_accept">
+        <di:waypoint x="1078" y="175" />
+        <di:waypoint x="1100" y="241" />
+        <di:waypoint x="1178" y="241" />
+        <di:waypoint x="1178" y="307" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1121" y="223" width="48" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MF_acceptCarrier_di" bpmnElement="MF_acceptCarrier">
+        <di:waypoint x="1410" y="365" />
+        <di:waypoint x="1410" y="431" />
+        <di:waypoint x="1338" y="431" />
+        <di:waypoint x="1338" y="497" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1331" y="413" width="66" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MF_done_di" bpmnElement="MF_done">
+        <di:waypoint x="1625" y="475" />
+        <di:waypoint x="1625" y="409" />
+        <di:waypoint x="1510" y="409" />
+        <di:waypoint x="1510" y="343" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1528" y="413" width="81" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MF_notify_di" bpmnElement="MF_notify">
+        <di:waypoint x="1600" y="285" />
+        <di:waypoint x="1600" y="219" />
+        <di:waypoint x="1298" y="219" />
+        <di:waypoint x="1298" y="153" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1455" y="223" width="69" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MF_confirm_di" bpmnElement="MF_confirm">
+        <di:waypoint x="1510" y="162" />
+        <di:waypoint x="1688" y="241" />
+        <di:waypoint x="1688" y="307" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1662" y="265" width="80" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

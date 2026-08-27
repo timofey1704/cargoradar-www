@@ -1,0 +1,12 @@
+User
+CarrierProfile
+ClientProfile
+Vehicle
+Order
+Route
+RoutePoint
+Response
+Negotiation
+AccessPurchase
+Review
+Cancellation

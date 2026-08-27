@@ -1,0 +1,90 @@
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+
+    container_name: cargoradar-frontend
+
+    ports:
+      - "3000:3000"
+
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+
+    environment:
+      WATCHPACK_POLLING: "true"
+
+    depends_on:
+      - backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+
+    container_name: cargoradar-backend
+
+    ports:
+      - "8000:8000"
+
+    volumes:
+      - ./backend:/app
+      - /app/.venv
+
+    environment:
+      WATCHFILES_FORCE_POLLING: "true"
+
+      DATABASE_URL: postgresql+asyncpg://admin:${POSTGRES_PASSWORD}@postgres:5432/cargoradardb
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgis/postgis:17-3.5
+    platform: linux/amd64
+
+    container_name: cargoradar-postgres
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: cargoradardb
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d cargoradardb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  redis:
+    image: redis:latest
+
+    container_name: cargoradar-redis
+    restart: unless-stopped
+
+    ports:
+      - "6379:6379"
+
+    volumes:
+      - redis_data:/data
+
+    command: redis-server --appendonly yes
+
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  postgres_data:
+  redis_data:

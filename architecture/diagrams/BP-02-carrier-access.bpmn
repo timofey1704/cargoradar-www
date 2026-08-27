@@ -1,0 +1,334 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Defs_BP02" targetNamespace="https://example.com/bpmn/carrier-access" exporter="bpmn-js (https://demo.bpmn.io)" exporterVersion="18.25.1">
+  <bpmn:collaboration id="Collab_BP02">
+    <bpmn:participant id="CarrierPool" name="Перевозчик" processRef="CarrierProcess" />
+    <bpmn:participant id="SystemPool" name="Система" processRef="SystemProcess" />
+    <bpmn:participant id="PaymentPool" name="Платёжная система" processRef="PaymentProcess" />
+    <bpmn:messageFlow id="M1" name="проверить доступ" sourceRef="D_request" targetRef="S_start" />
+    <bpmn:messageFlow id="M2" name="доступ активен" sourceRef="S_grant" targetRef="D_access" />
+    <bpmn:messageFlow id="M3" name="купить доступ" sourceRef="D_buy" targetRef="S_purchase" />
+    <bpmn:messageFlow id="M4" name="платёж" sourceRef="S_payment" targetRef="P_start" />
+    <bpmn:messageFlow id="M5" name="оплата завершена" sourceRef="P_confirm" targetRef="S_paid" />
+  </bpmn:collaboration>
+  <bpmn:process id="CarrierProcess" isExecutable="false">
+    <bpmn:startEvent id="D_start" name="Начало" />
+    <bpmn:userTask id="D_view" name="Просмотреть заказы" />
+    <bpmn:sendTask id="D_request" name="Проверить доступ" />
+    <bpmn:intermediateCatchEvent id="D_access" name="Получить полный доступ" />
+    <bpmn:exclusiveGateway id="D_gateway" name="Есть доступ?" />
+    <bpmn:sendTask id="D_buy" name="Купить доступ" />
+    <bpmn:intermediateCatchEvent id="D_newAccess" name="Доступ активирован" />
+    <bpmn:endEvent id="D_end" name="Конец" />
+    <bpmn:subProcess id="D_full" name="Полный доступ 24 часа" />
+    <bpmn:userTask id="D_actions" name="Отклик / торг / принятие" />
+    <bpmn:sequenceFlow id="D1" sourceRef="D_start" targetRef="D_view" />
+    <bpmn:sequenceFlow id="D2" sourceRef="D_view" targetRef="D_request" />
+    <bpmn:sequenceFlow id="D3" sourceRef="D_request" targetRef="D_access" />
+    <bpmn:sequenceFlow id="D4" sourceRef="D_access" targetRef="D_gateway" />
+    <bpmn:sequenceFlow id="D5" name="Нет" sourceRef="D_gateway" targetRef="D_buy" />
+    <bpmn:sequenceFlow id="D8" name="Да" sourceRef="D_gateway" targetRef="D_full" />
+    <bpmn:sequenceFlow id="D6" sourceRef="D_buy" targetRef="D_newAccess" />
+    <bpmn:sequenceFlow id="D7" sourceRef="D_newAccess" targetRef="D_full" />
+    <bpmn:sequenceFlow id="D10" sourceRef="D_actions" targetRef="D_end" />
+    <bpmn:sequenceFlow id="D9" sourceRef="D_full" targetRef="D_actions" />
+  </bpmn:process>
+  <bpmn:process id="SystemProcess" isExecutable="false">
+    <bpmn:startEvent id="S_start" name="Запрос доступа" />
+    <bpmn:serviceTask id="S_check" name="Проверить доступ" />
+    <bpmn:exclusiveGateway id="S_gateway" name="Доступ активен?">
+      <bpmn:outgoing>S3</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:intermediateCatchEvent id="S_purchase" name="Получить запрос на покупку" />
+    <bpmn:sendTask id="S_payment" name="Передать платёж" />
+    <bpmn:intermediateCatchEvent id="S_paid" name="Получить подтверждение оплаты" />
+    <bpmn:serviceTask id="S_activate" name="Активировать доступ на 24 часа" />
+    <bpmn:endEvent id="S_end" name="Конец" />
+    <bpmn:sendTask id="S_grant" name="Открыть полный доступ">
+      <bpmn:incoming>S3</bpmn:incoming>
+    </bpmn:sendTask>
+    <bpmn:sequenceFlow id="S1" sourceRef="S_start" targetRef="S_check" />
+    <bpmn:sequenceFlow id="S2" sourceRef="S_check" targetRef="S_gateway" />
+    <bpmn:sequenceFlow id="S4" name="Нет" sourceRef="S_gateway" targetRef="S_purchase" />
+    <bpmn:sequenceFlow id="S3" name="Да" sourceRef="S_gateway" targetRef="S_grant" />
+    <bpmn:sequenceFlow id="S5" sourceRef="S_purchase" targetRef="S_payment" />
+    <bpmn:sequenceFlow id="S6" sourceRef="S_payment" targetRef="S_paid" />
+    <bpmn:sequenceFlow id="S7" sourceRef="S_paid" targetRef="S_activate" />
+    <bpmn:sequenceFlow id="S8" sourceRef="S_activate" targetRef="S_grant" />
+    <bpmn:sequenceFlow id="S9" sourceRef="S_grant" targetRef="S_end" />
+  </bpmn:process>
+  <bpmn:process id="PaymentProcess" isExecutable="false">
+    <bpmn:startEvent id="P_start" name="Получить платёж" />
+    <bpmn:endEvent id="P_end" name="Конец" />
+    <bpmn:sendTask id="P_confirm" name="Подтвердить оплату" />
+    <bpmn:serviceTask id="P_process" name="Провести оплату" />
+    <bpmn:sequenceFlow id="P1" sourceRef="P_start" targetRef="P_process" />
+    <bpmn:sequenceFlow id="P3" sourceRef="P_confirm" targetRef="P_end" />
+    <bpmn:sequenceFlow id="P2" sourceRef="P_process" targetRef="P_confirm" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_BP02">
+    <bpmndi:BPMNPlane id="Plane_BP02" bpmnElement="Collab_BP02">
+      <bpmndi:BPMNShape bpmnElement="CarrierPool" isHorizontal="true">
+        <dc:Bounds x="160" y="40" width="1420" height="170" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="D_start">
+        <dc:Bounds x="230" y="117" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="229" y="153" width="39" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="D_view">
+        <dc:Bounds x="310" y="95" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="D_request">
+        <dc:Bounds x="490" y="95" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="D_access">
+        <dc:Bounds x="680" y="117" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="653" y="79.5" width="90" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="D_gateway" isMarkerVisible="true">
+        <dc:Bounds x="770" y="110" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="761" y="160" width="68" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="D_buy">
+        <dc:Bounds x="860" y="95" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="D_newAccess">
+        <dc:Bounds x="1020" y="117" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1006" y="153" width="65" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="D_end">
+        <dc:Bounds x="1465" y="120" width="30" height="30" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1464" y="150" width="32" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="D_full" isExpanded="false">
+        <dc:Bounds x="1100" y="95" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="D_actions">
+        <dc:Bounds x="1280" y="95" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="D1_di" bpmnElement="D1">
+        <di:waypoint x="266" y="135" />
+        <di:waypoint x="310" y="135" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="D2_di" bpmnElement="D2">
+        <di:waypoint x="430" y="135" />
+        <di:waypoint x="490" y="135" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="D3_di" bpmnElement="D3">
+        <di:waypoint x="610" y="135" />
+        <di:waypoint x="680" y="135" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="D4_di" bpmnElement="D4">
+        <di:waypoint x="716" y="135" />
+        <di:waypoint x="770" y="135" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="D5_di" bpmnElement="D5">
+        <di:waypoint x="820" y="135" />
+        <di:waypoint x="860" y="135" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="830" y="110" width="19" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="D6_di" bpmnElement="D6">
+        <di:waypoint x="970" y="135" />
+        <di:waypoint x="1020" y="135" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="D7_di" bpmnElement="D7">
+        <di:waypoint x="1056" y="135" />
+        <di:waypoint x="1100" y="135" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="D8_di" bpmnElement="D8">
+        <di:waypoint x="795" y="110" />
+        <di:waypoint x="795" y="80" />
+        <di:waypoint x="1165" y="80" />
+        <di:waypoint x="1165" y="95" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="973" y="55" width="14" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="D9_di" bpmnElement="D9">
+        <di:waypoint x="1230" y="135" />
+        <di:waypoint x="1280" y="135" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="D10_di" bpmnElement="D10">
+        <di:waypoint x="1410" y="135" />
+        <di:waypoint x="1465" y="135" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape bpmnElement="SystemPool" isHorizontal="true">
+        <dc:Bounds x="160" y="250" width="1420" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="S_start">
+        <dc:Bounds x="520" y="307" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="498" y="343" width="81" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="S_check">
+        <dc:Bounds x="600" y="285" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="S_gateway" isMarkerVisible="true">
+        <dc:Bounds x="750" y="300" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="732" y="350" width="86" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="S_purchase">
+        <dc:Bounds x="850" y="307" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="825" y="343" width="87" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="S_payment">
+        <dc:Bounds x="920" y="285" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="S_paid">
+        <dc:Bounds x="1060" y="307" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1038" y="270" width="80" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="S_activate">
+        <dc:Bounds x="1120" y="285" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="S_end">
+        <dc:Bounds x="1465" y="307" width="30" height="30" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1464" y="337" width="32" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="S_grant">
+        <dc:Bounds x="1285" y="285" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="S1_di" bpmnElement="S1">
+        <di:waypoint x="556" y="325" />
+        <di:waypoint x="600" y="325" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="S2_di" bpmnElement="S2">
+        <di:waypoint x="710" y="325" />
+        <di:waypoint x="750" y="325" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="S3_di" bpmnElement="S3">
+        <di:waypoint x="775" y="300" />
+        <di:waypoint x="1050" y="260" />
+        <di:waypoint x="1285" y="311" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="952" y="253" width="14" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="S4_di" bpmnElement="S4">
+        <di:waypoint x="800" y="325" />
+        <di:waypoint x="850" y="325" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="815" y="303" width="19" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="S5_di" bpmnElement="S5">
+        <di:waypoint x="886" y="325" />
+        <di:waypoint x="920" y="325" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="S6_di" bpmnElement="S6">
+        <di:waypoint x="1030" y="325" />
+        <di:waypoint x="1060" y="325" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="S7_di" bpmnElement="S7">
+        <di:waypoint x="1096" y="325" />
+        <di:waypoint x="1120" y="325" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="S8_di" bpmnElement="S8">
+        <di:waypoint x="1175" y="285" />
+        <di:waypoint x="1175" y="270" />
+        <di:waypoint x="1350" y="270" />
+        <di:waypoint x="1350" y="285" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="S9_di" bpmnElement="S9">
+        <di:waypoint x="1415" y="322" />
+        <di:waypoint x="1465" y="322" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape bpmnElement="PaymentPool" isHorizontal="true">
+        <dc:Bounds x="160" y="440" width="1420" height="150" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="P_start">
+        <dc:Bounds x="940" y="497" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="914" y="533" width="89" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="P_end">
+        <dc:Bounds x="1462" y="497" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1464" y="533" width="32" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="P_confirm">
+        <dc:Bounds x="1265" y="475" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="P_process">
+        <dc:Bounds x="1065" y="475" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="P1_di" bpmnElement="P1">
+        <di:waypoint x="976" y="515" />
+        <di:waypoint x="1065" y="515" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="P2_di" bpmnElement="P2">
+        <di:waypoint x="1175" y="515" />
+        <di:waypoint x="1265" y="515" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="P3_di" bpmnElement="P3">
+        <di:waypoint x="1375" y="515" />
+        <di:waypoint x="1462" y="515" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="M1_di" bpmnElement="M1">
+        <di:waypoint x="538" y="175" />
+        <di:waypoint x="538" y="307" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="512" y="219" width="54" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="M2_di" bpmnElement="M2">
+        <di:waypoint x="1350" y="285" />
+        <di:waypoint x="1350" y="219" />
+        <di:waypoint x="698" y="219" />
+        <di:waypoint x="698" y="153" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1251" y="226" width="78" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="M3_di" bpmnElement="M3">
+        <di:waypoint x="868" y="174" />
+        <di:waypoint x="868" y="307" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="836" y="221" width="72" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="M4_di" bpmnElement="M4">
+        <di:waypoint x="958" y="365" />
+        <di:waypoint x="958" y="497" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="940" y="412" width="37" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="M5_di" bpmnElement="M5">
+        <di:waypoint x="1320" y="475" />
+        <di:waypoint x="1320" y="409" />
+        <di:waypoint x="1078" y="409" />
+        <di:waypoint x="1078" y="343" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1182" y="405" width="57" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+  <bpmndi:BPMNDiagram>
+    <bpmndi:BPMNPlane bpmnElement="D_full" />
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

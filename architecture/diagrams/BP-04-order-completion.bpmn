@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Defs_BP04" targetNamespace="https://example.com/bpmn/order-completion" exporter="bpmn-js (https://demo.bpmn.io)" exporterVersion="18.25.1">
+  <bpmn:collaboration id="Collab_BP04">
+    <bpmn:participant id="CarrierPool" name="Перевозчик" processRef="CarrierProcess" />
+    <bpmn:participant id="SystemPool" name="Система" processRef="SystemProcess" />
+    <bpmn:participant id="CustomerPool" name="Заказчик" processRef="CustomerProcess" />
+    <bpmn:messageFlow id="M_done" name="заказ выполнен" sourceRef="D_done" targetRef="S_start" />
+    <bpmn:messageFlow id="M_notice" name="уведомление" sourceRef="S_notify" targetRef="C_notice" />
+    <bpmn:messageFlow id="M_confirm" name="подтверждение" sourceRef="C_confirm" targetRef="S_confirm" />
+    <bpmn:messageFlow id="M_reviewCarrier" name="предложение оставить отзыв" sourceRef="S_requestReview" targetRef="D_review" />
+    <bpmn:messageFlow id="M_reviewCustomer" name="предложение оставить отзыв" sourceRef="S_requestReview" targetRef="C_review" />
+  </bpmn:collaboration>
+  <bpmn:process id="CarrierProcess" isExecutable="false">
+    <bpmn:startEvent id="D_start" name="Выполнение завершено" />
+    <bpmn:sendTask id="D_done" name="Нажать «Заказ выполнен»" />
+    <bpmn:userTask id="D_leaveReview" name="Оставить отзыв и рейтинг" />
+    <bpmn:endEvent id="D_end" name="Конец" />
+    <bpmn:intermediateCatchEvent id="D_review" name="Получить приглашение к отзыву" />
+    <bpmn:sequenceFlow id="D1" sourceRef="D_start" targetRef="D_done" />
+    <bpmn:sequenceFlow id="D2" sourceRef="D_done" targetRef="D_review" />
+    <bpmn:sequenceFlow id="D3" sourceRef="D_review" targetRef="D_leaveReview" />
+    <bpmn:sequenceFlow id="D4" sourceRef="D_leaveReview" targetRef="D_end" />
+  </bpmn:process>
+  <bpmn:process id="SystemProcess" isExecutable="false">
+    <bpmn:sendTask id="S_notify" name="Уведомить заказчика" />
+    <bpmn:intermediateCatchEvent id="S_confirm" name="Получить подтверждение" />
+    <bpmn:serviceTask id="S_complete" name="Завершить заказ" />
+    <bpmn:sendTask id="S_requestReview" name="Предложить отзывы и рейтинг" />
+    <bpmn:endEvent id="S_end" name="Конец" />
+    <bpmn:startEvent id="S_start" name="Получить отметку о выполнении" />
+    <bpmn:sequenceFlow id="S1" sourceRef="S_start" targetRef="S_notify" />
+    <bpmn:sequenceFlow id="S2" sourceRef="S_notify" targetRef="S_confirm" />
+    <bpmn:sequenceFlow id="S3" sourceRef="S_confirm" targetRef="S_complete" />
+    <bpmn:sequenceFlow id="S4" sourceRef="S_complete" targetRef="S_requestReview" />
+    <bpmn:sequenceFlow id="S5" sourceRef="S_requestReview" targetRef="S_end" />
+  </bpmn:process>
+  <bpmn:process id="CustomerProcess" isExecutable="false">
+    <bpmn:userTask id="C_confirm" name="Подтвердить выполнение" />
+    <bpmn:intermediateCatchEvent id="C_review" name="Получить приглашение к отзыву" />
+    <bpmn:userTask id="C_leaveReview" name="Оставить отзыв и рейтинг" />
+    <bpmn:endEvent id="C_end" name="Конец" />
+    <bpmn:startEvent id="C_start" name="Ожидание" />
+    <bpmn:intermediateCatchEvent id="C_notice" name="Получить уведомление" />
+    <bpmn:sequenceFlow id="C2" sourceRef="C_notice" targetRef="C_confirm" />
+    <bpmn:sequenceFlow id="C3" sourceRef="C_confirm" targetRef="C_review" />
+    <bpmn:sequenceFlow id="C4" sourceRef="C_review" targetRef="C_leaveReview" />
+    <bpmn:sequenceFlow id="C5" sourceRef="C_leaveReview" targetRef="C_end" />
+    <bpmn:sequenceFlow id="C1" sourceRef="C_start" targetRef="C_notice" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_BP04">
+    <bpmndi:BPMNPlane id="Plane_BP04" bpmnElement="Collab_BP04">
+      <bpmndi:BPMNShape bpmnElement="CarrierPool" isHorizontal="true">
+        <dc:Bounds x="160" y="60" width="1300" height="140" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="D_start">
+        <dc:Bounds x="260" y="112" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="246" y="148" width="65" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="D_done">
+        <dc:Bounds x="360" y="90" width="150" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="D_leaveReview">
+        <dc:Bounds x="1060" y="90" width="140" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="D_end">
+        <dc:Bounds x="1270" y="112" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1272" y="148" width="32" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="D_review">
+        <dc:Bounds x="932" y="112" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="912" y="62" width="76" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="D1_di" bpmnElement="D1">
+        <di:waypoint x="296" y="130" />
+        <di:waypoint x="360" y="130" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="D2_di" bpmnElement="D2">
+        <di:waypoint x="510" y="130" />
+        <di:waypoint x="932" y="130" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="D3_di" bpmnElement="D3">
+        <di:waypoint x="968" y="130" />
+        <di:waypoint x="1060" y="130" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="D4_di" bpmnElement="D4">
+        <di:waypoint x="1200" y="130" />
+        <di:waypoint x="1270" y="130" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape bpmnElement="SystemPool" isHorizontal="true">
+        <dc:Bounds x="160" y="240" width="1300" height="140" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="S_notify">
+        <dc:Bounds x="480" y="270" width="140" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="S_confirm">
+        <dc:Bounds x="720" y="292" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="698" y="254.5" width="80" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="S_complete">
+        <dc:Bounds x="810" y="270" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="S_requestReview">
+        <dc:Bounds x="980" y="270" width="160" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="S_end">
+        <dc:Bounds x="1262" y="292" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1264" y="328" width="32" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="S_start">
+        <dc:Bounds x="272" y="292" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="259" y="328" width="63" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="S1_di" bpmnElement="S1">
+        <di:waypoint x="308" y="310" />
+        <di:waypoint x="480" y="310" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="S2_di" bpmnElement="S2">
+        <di:waypoint x="620" y="310" />
+        <di:waypoint x="720" y="310" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="S3_di" bpmnElement="S3">
+        <di:waypoint x="756" y="310" />
+        <di:waypoint x="810" y="310" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="S4_di" bpmnElement="S4">
+        <di:waypoint x="930" y="310" />
+        <di:waypoint x="980" y="310" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="S5_di" bpmnElement="S5">
+        <di:waypoint x="1140" y="310" />
+        <di:waypoint x="1262" y="310" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape bpmnElement="CustomerPool" isHorizontal="true">
+        <dc:Bounds x="160" y="420" width="1300" height="140" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="C_confirm">
+        <dc:Bounds x="650" y="450" width="140" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="C_review">
+        <dc:Bounds x="980" y="472" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="960" y="508" width="76" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="C_leaveReview">
+        <dc:Bounds x="1060" y="450" width="140" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="C_end">
+        <dc:Bounds x="1270" y="472" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1272" y="508" width="32" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="C_start">
+        <dc:Bounds x="262" y="472" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="254" y="508" width="53" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="C_notice">
+        <dc:Bounds x="522" y="472" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="506" y="508" width="69" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="C1_di" bpmnElement="C1">
+        <di:waypoint x="298" y="490" />
+        <di:waypoint x="522" y="490" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="C2_di" bpmnElement="C2">
+        <di:waypoint x="558" y="490" />
+        <di:waypoint x="650" y="490" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="C3_di" bpmnElement="C3">
+        <di:waypoint x="790" y="490" />
+        <di:waypoint x="980" y="490" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="C4_di" bpmnElement="C4">
+        <di:waypoint x="1016" y="490" />
+        <di:waypoint x="1060" y="490" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="C5_di" bpmnElement="C5">
+        <di:waypoint x="1200" y="490" />
+        <di:waypoint x="1270" y="490" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="M_done_di" bpmnElement="M_done">
+        <di:waypoint x="435" y="170" />
+        <di:waypoint x="435" y="231" />
+        <di:waypoint x="290" y="231" />
+        <di:waypoint x="290" y="292" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="249" y="254" width="81" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="M_notice_di" bpmnElement="M_notice">
+        <di:waypoint x="540" y="350" />
+        <di:waypoint x="540" y="470" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="510" y="392" width="69" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="M_confirm_di" bpmnElement="M_confirm">
+        <di:waypoint x="738" y="450" />
+        <di:waypoint x="738" y="328" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="698" y="393" width="80" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="M_reviewCarrier_di" bpmnElement="M_reviewCarrier">
+        <di:waypoint x="1060" y="270" />
+        <di:waypoint x="1060" y="209" />
+        <di:waypoint x="950" y="209" />
+        <di:waypoint x="950" y="148" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="905" y="161" width="79" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="M_reviewCustomer_di" bpmnElement="M_reviewCustomer">
+        <di:waypoint x="998" y="350" />
+        <di:waypoint x="998" y="472" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="961" y="390" width="79" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

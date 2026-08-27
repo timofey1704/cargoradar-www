@@ -29,8 +29,8 @@ class Executor(Base):
     price_per_km: Mapped[int] = mapped_column(Integer, nullable=False)
     hashed_password: Mapped[str | None] = mapped_column(String(255), nullable=True)  # null потому что может быть социальный логин
     
-    oauth_accounts: Mapped[list["OAuthAccount"]] = relationship(back_populates="user", cascade="all, delete-orphan")
-    refresh_tokens: Mapped[list["RefreshToken"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    oauth_accounts: Mapped[list["OAuthAccount"]] = relationship(back_populates="executor", cascade="all, delete-orphan")
+    refresh_tokens: Mapped[list["RefreshToken"]] = relationship(back_populates="executor", cascade="all, delete-orphan")
     
     is_notifications_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)

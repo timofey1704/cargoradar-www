@@ -7,8 +7,8 @@ from collections.abc import AsyncGenerator
 
 from core.database import AsyncSessionLocal
 from core.security import decode_token
-from models.client import Client
-from repositories.client import ClientRepository
+from backend.user.models.client import Client
+from backend.user.repositories.client import ClientRepository
 
 # извлекает Bearer-токен из заголовка Authorization.
 # auto_error=False — не даём FastAPI вернуть 403, обрабатываем отсутствие токена сами (401).

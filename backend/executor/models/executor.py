@@ -9,7 +9,7 @@ from sqlalchemy import Enum as SQLEnum
 from core.database import Base
 
 from models.oauth_accounts import OAuthAccount
-from models.enums.executor_types import ExecutorTypes
+from executor.models.enums.executor_types import ExecutorTypes
 
 if TYPE_CHECKING:
     from models.refresh_token import RefreshToken

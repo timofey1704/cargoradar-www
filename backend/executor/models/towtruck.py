@@ -7,7 +7,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from core.database import Base
 
 if TYPE_CHECKING:
-    from models.executor import Executor
+    from executor.models.executor import Executor
     
 class TowTruck(Base):
     __tablename__ = "tow_trucks"

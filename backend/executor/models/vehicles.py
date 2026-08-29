@@ -7,11 +7,11 @@ from sqlalchemy import Enum as SQLEnum
 
 from core.database import Base
 from models.enums.vehicle_types import VehicleTypes
-from models.enums.car_brands import CarBrands
+from executor.models.enums.car_brands import CarBrands
 from models.enums.vehicle_types import CarTypes
 
 if TYPE_CHECKING:
-    from models.executor import Executor
+    from executor.models.executor import Executor
 
 class Vehicle(Base):
     __tablename__ = "vehicles"

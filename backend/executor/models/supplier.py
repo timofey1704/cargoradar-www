@@ -3,17 +3,14 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import String, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import Enum as SQLEnum
 
 from core.database import Base
 
-from models.enums.car_brands import CarBrands
-
 if TYPE_CHECKING:
-    from models.executor import Executor
-
-class Service(Base):
-    __tablename__ = "services"
+    from executor.models.executor import Executor
+    
+class Supplier(Base):
+    __tablename__ = "suppliers"
 
     executor_id: Mapped[int] = mapped_column(
         ForeignKey("executors.id"),
@@ -27,11 +24,6 @@ class Service(Base):
         unique=True,
     )
     address: Mapped[str] = mapped_column(String(255), nullable=False)
-    brands: Mapped[list[CarBrands]] = mapped_column(
-        SQLEnum(CarBrands),
-        nullable=False, 
-        default=[CarBrands.all]
-    )
 
     executor: Mapped["Executor"] = relationship(
         back_populates="service"

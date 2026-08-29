@@ -49,8 +49,8 @@
    ```sh
    docker compose up
    ```
-   
-   # Выполните миграции, если они имеются.
+
+   #### Выполните миграции, если они имеются.
    ```sh
    cd backend
    docker compose exec backend uv run alembic upgrade head

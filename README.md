@@ -32,7 +32,7 @@
 1. **Клонирование репозитория:**
 
    ```sh
-   git clone https://github.com/timofey1704/cargoradar-www
+   git clone https://github.com/timofey1704/cargoradar-www.git
    cd cargoradar-www
    ```
 
@@ -48,7 +48,10 @@
 
    ```sh
    docker compose up
-   # Выполните миграции, если они имеются. В проекте откройте директорию backend
+   ```
+   
+   # Выполните миграции, если они имеются.
+   ```sh
    cd backend
    docker compose exec backend uv run alembic upgrade head
    ```

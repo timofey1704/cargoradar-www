@@ -11,6 +11,14 @@ class Settings(BaseSettings):
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
     refresh_token_expire_days: int = 30
+    
+    # админские токены — свои TTL (панелью пользуются реже, но сессию держать удобнее)
+    admin_access_token_expire_minutes: int = 60
+    admin_refresh_token_expire_days: int = 30
+    
+    # токены исполнителей 
+    admin_access_token_expire_minutes: int = 30
+    admin_refresh_token_expire_days: int = 30
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

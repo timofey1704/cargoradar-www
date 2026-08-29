@@ -23,7 +23,7 @@
 
 Для запуска проекта вам потребуются:
 
-- Node.js (рекомендуется версия 23.x или выше)
+- Node.js (рекомендуется версия 24.x или выше)
 - Python (рекомендуется версия 3.14 или выше)
 - PostgreSQL (рекомендуется версия 17.x или выше)
 
@@ -36,29 +36,21 @@
    cd cargoradar-www
    ```
 
-2. **Установка зависимостей для фронтенда и бэкенда:**
+2. **Установка Docker:**
 
    ```sh
-   cd frontend && npm install
+   https://docs.docker.com/desktop/setup/install/mac-install/
    ```
 
-   ```sh
-   cd backend
-   uv init
-   uv venv
-   source .venv/bin/activate
-   uv sync --locked
-   ```
+3. **Запуск проекта:**
 
-3. **Настройка базы данных:**
-
-   Создайте базу данных PostgreSQL и выполните миграции:
+   В корневой директории проекта выполните команду:
 
    ```sh
-   createdb cargoradar
+   docker compose up
    # Выполните миграции, если они имеются. В проекте откройте директорию backend
    cd backend
-   uv run alembic upgrade head
+   docker compose exec backend uv run alembic upgrade head
    ```
 
 4. **Настройка переменных окружения:**
@@ -66,25 +58,12 @@
    Создайте файл `.env` в директории `backend` и добавьте необходимые переменные окружения:
 
    ```env
-   DATABASE_URL=
+   POSTGRES_PASSWORD=
+   DATABASE_URL=postgresql+asyncpg://{login}:{password}@postgres:5432/{database_name}
    SECRET_KEY=
+   REFRESH_SECRET_KEY=
    ACCESS_TOKEN_EXPIRE_MINUTES=30
-   ```
-
-5. **Локальная разработка:**
-
-   Откройте три терминала или используйте вкладки в одном терминале.
-
-   В первом терминале запустите бэкенд:
-
-   ```
-   cd backend/app && uv run uvicorn main:app --reload
-   ```
-
-   Во втором терминале запустите фронтенд:
-
-   ```
-   cd frontend && npm run dev
+   REFRESH_TOKEN_EXPIRE_DAYS=30
    ```
 
 Теперь проект будет доступен по адресу `http://localhost:3000`.

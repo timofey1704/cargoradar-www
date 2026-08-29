@@ -32,6 +32,31 @@ app/
    uv run uvicorn main:app --reload
    ```
 
+## Через Docker:
+1. **Запустить проект:**
+   ```sh
+   docker compose up
+   ```
+
+2. **Установить пакеты:**
+   ```sh
+   docker compose exec backend uv add <package>
+   ```
+   Если dev-зависимость, то:
+   ```sh
+   docker compose exec backend uv add --dev pytest
+   ```
+
+3. **Удалить пакеты:**
+   ```sh
+   docker compose exec backend uv remove <package>
+   ```
+   
+4. **Обновить все зависимости до последней версии:**
+   ```sh
+   docker compose exec backend uv sync --upgrade
+   ```
+
 ## Миграции:
 
 ### Рабочий цикл миграции
@@ -40,27 +65,27 @@ app/
 2. **Генерируешь миграцию**
 
 ```sh
-   uv run alembic revision --autogenerate -m "add username to user"
+   docker compose exec backend uv run alembic revision --autogenerate -m "description"
    ```
 
 3. **Смотришь что сгенерировалось (важно!) в migrations/versions/**
 Alembic иногда ошибается, особенно с индексами и constraints
 
 4. **Применяешь**
-uv run alembic upgrade head
+docker compose exec backend uv run alembic upgrade head
 
 ### Nice to know:
 1. **Какая миграция сейчас в БД:**
  ```sh
-   uv run alembic current 
+   docker compose exec backend uv run alembic current
    ```
 
 2. **История всех миграций:**
  ```sh
-   uv run alembic history 
+   docker compose exec backend uv run alembic history
    ```
 
 3. **Откатить последнюю миграцию:**
  ```sh
-   uv run alembic downgrade -1
+   docker compose exec backend uv run alembic downgrade -1
    ```

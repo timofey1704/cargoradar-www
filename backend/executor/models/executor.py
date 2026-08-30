@@ -8,11 +8,15 @@ from sqlalchemy import Enum as SQLEnum
 
 from core.database import Base
 
-from models.oauth_accounts import OAuthAccount
 from executor.models.enums.executor_types import ExecutorTypes
+from executor.models.oauth_accounts import OAuthAccount
 
 if TYPE_CHECKING:
-    from models.refresh_token import RefreshToken
+    from executor.models.refresh_token import RefreshToken
+    from executor.models.service import Service
+    from executor.models.supplier import Supplier
+    from executor.models.towtruck import TowTruck
+    from executor.models.vehicles import Vehicle
 
 class Executor(Base):
     __tablename__ = "executors"
@@ -31,6 +35,14 @@ class Executor(Base):
     
     oauth_accounts: Mapped[list["OAuthAccount"]] = relationship(back_populates="executor", cascade="all, delete-orphan")
     refresh_tokens: Mapped[list["RefreshToken"]] = relationship(back_populates="executor", cascade="all, delete-orphan")
+
+    vehicles: Mapped[list["Vehicle"]] = relationship(
+        back_populates="executor",
+        cascade="all, delete-orphan",
+    )
+    service: Mapped["Service | None"] = relationship(back_populates="executor")
+    supplier: Mapped["Supplier | None"] = relationship(back_populates="executor")
+    towtruck: Mapped["TowTruck | None"] = relationship(back_populates="executor")
     
     is_notifications_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)

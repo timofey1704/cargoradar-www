@@ -6,9 +6,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import Enum as SQLEnum
 
 from core.database import Base
-from models.enums.vehicle_types import VehicleTypes
 from executor.models.enums.car_brands import CarBrands
-from models.enums.vehicle_types import CarTypes
+from executor.models.enums.vehicle_types import CarTypes, VehicleTypes
 
 if TYPE_CHECKING:
     from executor.models.executor import Executor

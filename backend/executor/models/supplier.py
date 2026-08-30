@@ -26,5 +26,5 @@ class Supplier(Base):
     address: Mapped[str] = mapped_column(String(255), nullable=False)
 
     executor: Mapped["Executor"] = relationship(
-        back_populates="service"
+        back_populates="supplier"
     )

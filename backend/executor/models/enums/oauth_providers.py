@@ -1,5 +1,3 @@
-import enum
+from core.models.oauth_providers import OAuthProvider
 
-class OAuthProvider(str, enum.Enum):
-    apple = "apple"
-    google = "google"
+__all__ = ["OAuthProvider"]

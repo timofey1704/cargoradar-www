@@ -1,7 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from models.executor import Executor
+from executor.models.executor import Executor
 from executor.models.enums.executor_types import ExecutorTypes
 
 class ExecutorRepository:

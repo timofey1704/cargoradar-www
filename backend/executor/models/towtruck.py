@@ -30,5 +30,5 @@ class TowTruck(Base):
     is_available_for_work: Mapped[bool] = mapped_column(nullable=False, default=True)
 
     executor: Mapped["Executor"] = relationship(
-        back_populates="service"
+        back_populates="towtruck"
     )

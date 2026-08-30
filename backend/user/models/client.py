@@ -7,11 +7,11 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from core.database import Base
 
-from models.oauth_accounts import OAuthAccount
+from user.models.oauth_accounts import OAuthAccount
 
 if TYPE_CHECKING:
-    from models.refresh_token import RefreshToken
-    
+    from user.models.refresh_token import RefreshToken
+
 
 class Client(Base):
     __tablename__ = "clients"
@@ -28,7 +28,7 @@ class Client(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     
-    oauth_accounts: Mapped[list["OAuthAccount"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    oauth_accounts: Mapped[list["OAuthAccount"]] = relationship(back_populates="client", cascade="all, delete-orphan")
     refresh_tokens: Mapped[list["RefreshToken"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     
     def __repr__(self) -> str:

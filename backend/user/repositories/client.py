@@ -1,7 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.user.models.client import Client
+from user.models.client import Client
 
 class ClientRepository:
     def __init__(self, db: AsyncSession) -> None:

@@ -1,11 +1,12 @@
 from fastapi import APIRouter, status
 
 from core.dependencies import CurrentExecutor, DbSession
+from core.schemas.common_auth_credentials import CommonCredentialsFields
+
 from executor.models import Executor
 from executor.schemas.executor_credentials import (
     RefreshRequest,
     TokenResponse,
-    ExecutorCredentials,
     ExecutorRegister
 )
 from executor.schemas.executor_read import ExecutorRead
@@ -22,7 +23,7 @@ async def register(data: ExecutorRegister, db: DbSession) -> TokenResponse:
 
 
 @router.post("/login", response_model=TokenResponse)
-async def login(data: ExecutorCredentials, db: DbSession) -> TokenResponse:
+async def login(data: CommonCredentialsFields, db: DbSession) -> TokenResponse:
     """Вход по телефону и паролю."""
     return await auth_service.login_executor(data, db)
 

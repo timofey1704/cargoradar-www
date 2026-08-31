@@ -7,10 +7,10 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from core.database import Base
 
-from user.models.oauth_accounts import OAuthAccount
+from client.models.oauth_accounts import OAuthAccount
 
 if TYPE_CHECKING:
-    from user.models.refresh_token import RefreshToken
+    from client.models.refresh_token import RefreshToken
 
 
 class Client(Base):

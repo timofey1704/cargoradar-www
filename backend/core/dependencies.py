@@ -8,8 +8,8 @@ from collections.abc import AsyncGenerator
 from core.database import AsyncSessionLocal
 from core.security import decode_token
 
-from user.models.client import Client
-from user.repositories.client import ClientRepository
+from client.models.client import Client
+from client.repositories.client import ClientRepository
 
 from executor.models.executor import Executor
 from executor.repositories.executor import ExecutorRepository

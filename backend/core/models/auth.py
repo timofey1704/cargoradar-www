@@ -11,7 +11,7 @@ from core.models.oauth_providers import OAuthProvider
 
 if TYPE_CHECKING:
     from executor.models.executor import Executor
-    from user.models.client import Client
+    from client.models.client import Client
 
 
 class OAuthAccount(Base):

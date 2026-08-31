@@ -10,6 +10,8 @@ from core.security import (
     hash_password,
     verify_password,
 )
+from core.schemas.common_auth_credentials import CommonCredentialsFields
+
 from executor.models.enums.car_brands import CarBrands
 from executor.models.service import Service
 from executor.models.supplier import Supplier
@@ -18,7 +20,6 @@ from executor.models.vehicles import Vehicle
 from executor.repositories.executor import ExecutorRepository
 from executor.repositories.refresh_token import RefreshTokenRepository
 from executor.schemas.executor_credentials import (
-    ExecutorCredentials,
     ExecutorRegister,
     TokenResponse,
 )
@@ -105,7 +106,7 @@ async def register_executor(data: ExecutorRegister, db: AsyncSession) -> TokenRe
     return await _issue_tokens(executor.id, db)
 
 
-async def login_executor(data: ExecutorCredentials, db: AsyncSession) -> TokenResponse:
+async def login_executor(data: CommonCredentialsFields, db: AsyncSession) -> TokenResponse:
     """
     Логин: находим аккаунт, верифицируем пароль.
     Намеренно не говорим что именно неверно — телефон или пароль.

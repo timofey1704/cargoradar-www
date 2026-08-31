@@ -1,5 +1,7 @@
 from pydantic import BaseModel, EmailStr, Field, model_validator
 
+from core.schemas.common_auth_credentials import CommonCredentialsFields
+
 from executor.models.enums.executor_types import ExecutorTypes
 from executor.schemas.service import ServiceCreate
 from executor.schemas.supplier import SupplierCreate
@@ -15,15 +17,7 @@ _EXECUTOR_PROFILE_FIELDS: dict[ExecutorTypes, str] = {
     ExecutorTypes.towtruck: "towtruck",
 }
 
-
-class ExecutorCredentials(BaseModel):
-    """Общие поля для регистрации и логина"""
-
-    phone_number: BelarusPhoneNumber
-    password: str = Field(min_length=8, max_length=72)
-
-
-class ExecutorRegister(ExecutorCredentials):
+class ExecutorRegister(CommonCredentialsFields):
     """Поля для регистрации исполнителя"""
 
     name: str = Field(min_length=1, max_length=255)

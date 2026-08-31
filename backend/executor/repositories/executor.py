@@ -23,7 +23,7 @@ class ExecutorRepository:
         email: str,
         phone_number: str,
         price_per_km: int | None,
-        hashed_password: str,
+        hashed_password: str | None
        
     ) -> Executor:
         executor = Executor(

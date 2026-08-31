@@ -3,7 +3,8 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-# from routes import (auth, connect_user, user, activity, matches, finder)
+
+from executor.routes.auth import router as executor_auth_router
 
 logging.basicConfig(
     level=logging.INFO,
@@ -28,12 +29,8 @@ app.add_middleware(
 )
 
 
-# app.include_router(auth.router, prefix="/api") # регистрация, логин и инфа для входа
-# app.include_router(connect_user.router, prefix="/api") # связать аккаунты пользователей
-# app.include_router(user.router, prefix="/api") # вся логика по юзеру
-# app.include_router(activity.router, prefix="/api") # активности
-# app.include_router(matches.router, prefix="/api") # метчи
-# app.include_router(finder.router, prefix="/api") # свайпы в finder
+# авторизация исполнителей: /api/executor/auth/*
+app.include_router(executor_auth_router, prefix="/api/executor")
 
 # отдаём загруженный медиаконтент по /uploads/...
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")

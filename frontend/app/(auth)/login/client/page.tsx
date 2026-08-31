@@ -139,7 +139,7 @@ export default function LoginPage() {
 
               <div className="mt-8 border-t border-gray-100 pt-6 text-center">
                 <Link
-                  href="/executor/login"
+                  href="/login/executor"
                   className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-400 transition-colors hover:text-gray-700"
                 >
                   Вы исполнитель?

@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from executor.routes.auth import router as executor_auth_router
+from client.routes.auth import router as client_auth_router
 
 logging.basicConfig(
     level=logging.INFO,
@@ -22,15 +23,14 @@ app = FastAPI(
 # CORS — настроить разрешенные источники, методы и заголовки для запросов из браузера
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:5173"],
+    allow_origins=["http://localhost:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-
-# авторизация исполнителей: /api/executor/auth/*
-app.include_router(executor_auth_router, prefix="/api/executor")
+app.include_router(executor_auth_router, prefix="/api/executor") # авторизация исполнителей: /api/executor/auth/*
+app.include_router(client_auth_router, prefix="/api/client") # авторизация клиентов: /api/client/auth/*
 
 # отдаём загруженный медиаконтент по /uploads/...
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")

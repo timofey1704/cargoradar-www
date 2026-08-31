@@ -154,7 +154,7 @@ async def get_current_executor(
 CurrentExecutor = Annotated[Executor, Depends(get_current_executor)]
 
 # вставляем в сигнатуру роутера одной строкой
-CurrentUser = Annotated[Client, Depends(get_current_user)]
+CurrentClient = Annotated[Client, Depends(get_current_user)]
 
 # инжектор в роутеры
 DbSession = Annotated[AsyncSession, Depends(get_db)]

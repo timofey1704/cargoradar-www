@@ -103,7 +103,7 @@ async def refresh_tokens(refresh_token: str, db: AsyncSession) -> TokenResponse:
     )
 
     payload = decode_token(refresh_token, is_refresh=True)
-    if not payload or payload.get("type") != "refresh" or payload.get("role") != "executor":
+    if not payload or payload.get("type") != "refresh" or payload.get("role") != "client":
         raise unauthorized
 
     jti = payload.get("jti")

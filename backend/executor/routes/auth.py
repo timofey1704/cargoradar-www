@@ -2,13 +2,11 @@ from fastapi import APIRouter, status
 
 from core.dependencies import CurrentExecutor, DbSession
 from core.schemas.common_auth_credentials import CommonCredentialsFields
+from core.schemas.token import RefreshRequest, TokenResponse
 
 from executor.models import Executor
-from executor.schemas.executor_credentials import (
-    RefreshRequest,
-    TokenResponse,
-    ExecutorRegister
-)
+from executor.schemas.executor_credentials import ExecutorRegister
+
 from executor.schemas.executor_read import ExecutorRead
 from executor.schemas.executor_update import ExecutorUpdate
 from executor.services import auth_service, executor_service

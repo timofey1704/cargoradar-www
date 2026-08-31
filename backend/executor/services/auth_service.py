@@ -11,6 +11,7 @@ from core.security import (
     verify_password,
 )
 from core.schemas.common_auth_credentials import CommonCredentialsFields
+from core.schemas.token import TokenResponse
 
 from executor.models.enums.car_brands import CarBrands
 from executor.models.service import Service
@@ -19,10 +20,7 @@ from executor.models.towtruck import TowTruck
 from executor.models.vehicles import Vehicle
 from executor.repositories.executor import ExecutorRepository
 from executor.repositories.refresh_token import RefreshTokenRepository
-from executor.schemas.executor_credentials import (
-    ExecutorRegister,
-    TokenResponse,
-)
+from executor.schemas.executor_credentials import ExecutorRegister
 
 logger = logging.getLogger(__name__)
 

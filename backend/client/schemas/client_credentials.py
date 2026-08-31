@@ -1,16 +1,6 @@
 from pydantic import BaseModel, EmailStr, Field
 
 from core.schemas.common_auth_credentials import CommonCredentialsFields
-
-
-class TokenResponse(BaseModel):
-    access_token: str
-    refresh_token: str
-    token_type: str = "bearer"
-    
-class RefreshRequest(BaseModel):
-    refresh_token: str
-    
 class ClientRegister(CommonCredentialsFields):
     """Поля для регистрации клиента"""
 

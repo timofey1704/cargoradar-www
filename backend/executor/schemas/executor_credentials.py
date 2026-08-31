@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, Field, model_validator
+from pydantic import EmailStr, Field, model_validator
 
 from core.schemas.common_auth_credentials import CommonCredentialsFields
 
@@ -7,7 +7,6 @@ from executor.schemas.service import ServiceCreate
 from executor.schemas.supplier import SupplierCreate
 from executor.schemas.towtruck import TowTruckCreate
 from executor.schemas.vehicle import VehicleCreate
-from utils.phone_number_validator import BelarusPhoneNumber
 
 # какой профиль ожидается для каждого типа аккаунта
 _EXECUTOR_PROFILE_FIELDS: dict[ExecutorTypes, str] = {
@@ -51,11 +50,3 @@ class ExecutorRegister(CommonCredentialsFields):
                 "Можно передать только один профиль, соответствующий типу аккаунта"
             )
         return self
-    
-class TokenResponse(BaseModel):
-    access_token: str
-    refresh_token: str
-    token_type: str = "bearer"
-    
-class RefreshRequest(BaseModel):
-    refresh_token: str

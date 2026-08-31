@@ -10,8 +10,5 @@ export const loginSchema = z.object({
     .min(8, 'Пароль должен содержать минимум 8 символов'),
 })
 
-// Тип для onSubmit (после transform)
-export type LoginFormValues = z.output<typeof loginSchema>
-
-// Тип для defaultValues и полей формы (до transform)
 export type LoginFormInput = z.input<typeof loginSchema>
+export type LoginFormOutput = z.output<typeof loginSchema>

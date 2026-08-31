@@ -1,13 +1,17 @@
 'use client'
 
+import Link from 'next/link'
 import { FormProvider } from 'react-hook-form'
+import { ArrowRight, MapPin, Truck } from 'lucide-react'
 
 import { FormInput } from '@/components/ui/form-input'
 import { useAppForm } from '@/hooks/use-app-form'
 import {
   loginSchema,
   type LoginFormInput,
+  type LoginFormOutput,
 } from '@/schemas/auth/login/loginSchema'
+import { client_login } from '@/lib/auth/login'
 
 export default function LoginPage() {
   const {
@@ -16,41 +20,242 @@ export default function LoginPage() {
     togglePasswordVisibility,
   } = useAppForm({
     schema: loginSchema,
-
     defaultValues: {
       phone: '',
       password: '',
     },
   })
 
+  const handleLogin = async (values: LoginFormOutput) => {
+    await client_login(values)
+  }
+
   return (
-    <FormProvider {...form}>
-      <form
-        onSubmit={form.handleSubmit(async (values) => {
-          await login(values)
-        })}
-      >
-        <FormInput<LoginFormInput>
-          name="phone"
-          label="Ваш номер телефона"
-          placeholder="+375 29 123-45-67"
-          autoComplete="tel"
-        />
+    <main className="min-h-screen bg-[#F7F7F5] px-4 py-6 sm:px-6 lg:px-8">
+      <div className="mx-auto flex min-h-[calc(100vh-3rem)] max-w-6xl items-center">
+        <div className="grid w-full overflow-hidden rounded-4xl border border-black/5 bg-white shadow-[0_24px_80px_rgba(0,0,0,0.08)] lg:grid-cols-2">
+      
+          <div className="flex items-center px-6 py-10 sm:px-10 lg:px-16 lg:py-14">
+            <div className="mx-auto w-full max-w-md">
+            
+              <Link
+                href="/"
+                className="mb-10 inline-flex items-center gap-2"
+              >
+                <div className="flex size-10 items-center justify-center rounded-xl bg-orange-500 text-white shadow-lg shadow-orange-500/20">
+                  <Truck className="size-5" strokeWidth={2.2} />
+                </div>
 
-        <FormInput<LoginFormInput>
-          name="password"
-          label="Ваш пароль"
-          placeholder="Не менее 8 символов"
-          autoComplete="current-password"
-          isPassword
-          isVisible={isVisible}
-          togglePasswordVisibility={togglePasswordVisibility}
-        />
+                <span className="text-xl font-bold tracking-tight text-gray-950">
+                  Cargo<span className="text-orange-500">Radar</span>
+                </span>
+              </Link>
 
-        <button type="submit">
-          Войти
-        </button>
-      </form>
-    </FormProvider>
+              <div className="mb-8">
+                <p className="mb-2 text-sm font-medium text-orange-500">
+                  Личный кабинет клиента
+                </p>
+
+                <h1 className="text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
+                  С возвращением!
+                </h1>
+
+                <p className="mt-3 text-sm leading-6 text-gray-500">
+                  Войдите в аккаунт, чтобы управлять своими
+                  грузоперевозками.
+                </p>
+              </div>
+
+              <FormProvider {...form}>
+                <form
+                  onSubmit={form.handleSubmit(handleLogin)}
+                  className="flex flex-col gap-5"
+                >
+                  <FormInput<LoginFormInput>
+                    name="phone"
+                    label="Номер телефона"
+                    placeholder="+375 29 123-45-67"
+                    autoComplete="tel"
+                    inputMode="tel"
+                  />
+
+                  <div>
+                    <FormInput<LoginFormInput>
+                      name="password"
+                      label="Пароль"
+                      placeholder="Введите пароль"
+                      autoComplete="current-password"
+                      isPassword
+                      isVisible={isVisible}
+                      togglePasswordVisibility={togglePasswordVisibility}
+                    />
+
+                    <div className="mt-2 flex justify-end">
+                      <Link
+                        href="/password-recovery"
+                        className="text-sm font-medium text-gray-500 transition-colors hover:text-orange-500"
+                      >
+                        Забыли пароль?
+                      </Link>
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={form.formState.isSubmitting}
+                    className="mt-2 flex h-13 w-full items-center justify-center gap-2 rounded-xl bg-orange-500 px-5 text-sm font-semibold text-white shadow-lg shadow-orange-500/20 transition-all duration-200 hover:bg-orange-600 hover:shadow-orange-500/30 focus:ring-2 focus:ring-orange-500/30 focus:outline-none disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {form.formState.isSubmitting ? (
+                      'Выполняем вход...'
+                    ) : (
+                      <>
+                        Войти
+                        <ArrowRight className="size-4" />
+                      </>
+                    )}
+                  </button>
+                </form>
+              </FormProvider>
+
+              <div className="my-8 flex items-center gap-4">
+                <div className="h-px flex-1 bg-gray-200" />
+
+                <span className="text-xs font-medium text-gray-400">
+                  ИЛИ
+                </span>
+
+                <div className="h-px flex-1 bg-gray-200" />
+              </div>
+
+              <p className="text-center text-sm text-gray-500">
+                Впервые у нас?{' '}
+                <Link
+                  href="/register/client"
+                  className="font-semibold text-orange-500 transition-colors hover:text-orange-600 hover:underline"
+                >
+                  Зарегистрироваться
+                </Link>
+              </p>
+
+              <div className="mt-8 border-t border-gray-100 pt-6 text-center">
+                <Link
+                  href="/executor/login"
+                  className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-400 transition-colors hover:text-gray-700"
+                >
+                  Вы исполнитель?
+                  <span className="text-gray-600">
+                    Войти как исполнитель
+                  </span>
+                  <ArrowRight className="size-3.5" />
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* Transport visual */}
+          <div className="relative hidden overflow-hidden bg-gray-950 lg:block">
+            {/* Decorative gradients */}
+            <div className="absolute -top-32 -right-32 size-96 rounded-full bg-orange-500/20 blur-3xl" />
+            <div className="absolute -bottom-32 -left-32 size-96 rounded-full bg-orange-400/10 blur-3xl" />
+
+            <div className="relative flex h-full min-h-170 flex-col justify-between p-10 xl:p-14">
+              <div>
+                <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-white/70 backdrop-blur">
+                  <span className="size-1.5 rounded-full bg-orange-400" />
+                  CargoRadar
+                </div>
+
+                <h2 className="max-w-md text-3xl font-bold leading-tight tracking-tight text-white xl:text-4xl">
+                  Найдите подходящую перевозку
+                  <span className="text-orange-400"> без лишних звонков.</span>
+                </h2>
+
+                <p className="mt-5 max-w-sm text-sm leading-6 text-gray-400">
+                  Создавайте заявки, находите исполнителей и
+                  контролируйте перевозку в одном месте.
+                </p>
+              </div>
+
+              {/* Route card */}
+              <div className="relative mx-auto w-full max-w-md">
+                <div className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-2xl backdrop-blur-xl">
+                  <div className="mb-5 flex items-center justify-between">
+                    <span className="text-xs font-medium text-gray-400">
+                      МАРШРУТ
+                    </span>
+
+                    <span className="rounded-full bg-orange-500/10 px-2.5 py-1 text-[10px] font-semibold text-orange-400">
+                      АКТИВНЫЙ
+                    </span>
+                  </div>
+
+                  <div className="flex gap-4">
+                    <div className="flex flex-col items-center pt-1">
+                      <div className="flex size-8 items-center justify-center rounded-full bg-orange-500/15 text-orange-400">
+                        <MapPin className="size-4" />
+                      </div>
+
+                      <div className="my-1 w-px flex-1 border-l border-dashed border-gray-600" />
+
+                      <div className="size-2 rounded-full bg-gray-500" />
+                    </div>
+
+                    <div className="flex flex-1 flex-col gap-6">
+                      <div>
+                        <p className="text-[10px] font-medium uppercase tracking-wider text-gray-500">
+                          Откуда
+                        </p>
+                        <p className="mt-1 text-sm font-semibold text-white">
+                          Минск
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-[10px] font-medium uppercase tracking-wider text-gray-500">
+                          Куда
+                        </p>
+                        <p className="mt-1 text-sm font-semibold text-white">
+                          Брест
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-5 flex items-center justify-between border-t border-white/10 pt-4">
+                    <span className="text-xs text-gray-500">
+                      Груз
+                    </span>
+
+                    <span className="text-xs font-medium text-gray-300">
+                      До 20 тонн
+                    </span>
+                  </div>
+                </div>
+
+                {/* Floating truck card */}
+                <div className="absolute -right-5 -bottom-6 flex items-center gap-3 rounded-2xl border border-white/10 bg-gray-900 px-4 py-3 shadow-xl">
+                  <div className="flex size-9 items-center justify-center rounded-xl bg-orange-500">
+                    <Truck className="size-4 text-white" />
+                  </div>
+
+                  <div>
+                    <p className="text-[10px] text-gray-500">
+                      Исполнитель найден
+                    </p>
+                    <p className="text-xs font-semibold text-white">
+                      Грузовик рядом
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <p className="text-xs text-gray-600">
+                Перевозки становятся проще.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
   )
 }

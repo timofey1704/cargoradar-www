@@ -30,7 +30,7 @@ class Executor(Base):
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     email: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
     phone_number: Mapped[str] = mapped_column(String(50), nullable=False, unique=True)
-    price_per_km: Mapped[int] = mapped_column(Integer, nullable=False)
+    price_per_km: Mapped[int] = mapped_column(Integer, nullable=True)
     hashed_password: Mapped[str | None] = mapped_column(String(255), nullable=True)  # null потому что может быть социальный логин
     
     oauth_accounts: Mapped[list["OAuthAccount"]] = relationship(back_populates="executor", cascade="all, delete-orphan")

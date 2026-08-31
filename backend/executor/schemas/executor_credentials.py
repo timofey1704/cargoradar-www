@@ -57,3 +57,11 @@ class ExecutorRegister(ExecutorCredentials):
                 "Можно передать только один профиль, соответствующий типу аккаунта"
             )
         return self
+    
+class TokenResponse(BaseModel):
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+    
+class RefreshRequest(BaseModel):
+    refresh_token: str

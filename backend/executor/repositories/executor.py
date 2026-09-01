@@ -23,7 +23,8 @@ class ExecutorRepository:
         email: str,
         phone_number: str,
         price_per_km: int | None,
-        hashed_password: str | None
+        hashed_password: str | None,
+        privacy_accepted: bool = True
        
     ) -> Executor:
         executor = Executor(
@@ -32,7 +33,8 @@ class ExecutorRepository:
             type=type,
             name=name,
             phone_number=phone_number,
-            price_per_km=price_per_km
+            price_per_km=price_per_km,
+            privacy_accepted=privacy_accepted
         )
         self.db.add(executor)
         await self.db.commit()

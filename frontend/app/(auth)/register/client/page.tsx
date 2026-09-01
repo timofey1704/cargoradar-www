@@ -25,9 +25,9 @@ export default function ClientRegisterPage() {
     defaultValues: {
       name: '',
       email: '',
-      phone: '',
+      phone_number: '',
       password: '',
-      privacyAccepted: true,
+      privacy_accepted: true,
     },
   })
 
@@ -91,7 +91,7 @@ export default function ClientRegisterPage() {
                   />
 
                   <FormInput<RegisterFormInput>
-                    name="phone"
+                    name="phone_number"
                     label="Номер телефона"
                     placeholder="+375 29 123-45-67"
                     autoComplete="tel"
@@ -110,7 +110,7 @@ export default function ClientRegisterPage() {
                   <label className="mt-1 flex cursor-pointer items-start gap-3">
                     <input
                       type="checkbox"
-                      {...form.register('privacyAccepted')}
+                      {...form.register('privacy_accepted')}
                       className="mt-0.5 size-4 shrink-0 cursor-pointer rounded border-gray-300 text-orange-500 accent-orange-500 focus:ring-orange-500"
                     />
 

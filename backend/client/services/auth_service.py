@@ -56,7 +56,8 @@ async def register_client(data: ClientRegister, db: AsyncSession) -> TokenRespon
         email=str(data.email),
         phone_number=data.phone_number,
         hashed_password=hashed,
-        VIN_code =data.VIN_code
+        VIN_code =data.VIN_code,
+        privacy_accepted=data.privacy_accepted
         )
 
     await db.commit()

@@ -21,14 +21,16 @@ class ClientRepository:
         phone_number: str,
         email: str,
         hashed_password: str | None = None,
-        VIN_code: str | None = None
+        VIN_code: str | None = None,
+        privacy_accepted: bool = True
     ) -> Client:
         client = Client(
             name=name,
             email=email,
             hashed_password=hashed_password,
             phone_number=phone_number,
-            VIN_code=VIN_code
+            VIN_code=VIN_code,
+            privacy_accepted=privacy_accepted
         )
         self.db.add(client)
         await self.db.commit()

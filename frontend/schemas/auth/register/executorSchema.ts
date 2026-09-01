@@ -22,7 +22,7 @@ export const ExecutorTypesNames: Record<ExecutorType, string> = {
 
 export const registerSchema = z.object({
   name: z.string().min(1, 'Введите имя'),
-  phone: belarusPhoneSchema,
+  phone_number: belarusPhoneSchema,
   email: z.email('Введите корректный email'),
   password: z
     .string()
@@ -30,7 +30,7 @@ export const registerSchema = z.object({
     .min(8, 'Пароль должен содержать минимум 8 символов'),
   type: executorTypeSchema,
   car: carSchema.optional(),
-  privacyAccepted: z.literal(true, {
+  privacy_accepted: z.literal(true, {
     error: 'Необходимо принять политику конфиденциальности',
   }),
 })

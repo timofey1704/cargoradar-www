@@ -16,7 +16,7 @@ export default function LoginPage() {
   const { form, isVisible, togglePasswordVisibility } = useAppForm({
     schema: loginSchema,
     defaultValues: {
-      phone: '',
+      phone_number: '',
       password: '',
     },
   })
@@ -62,7 +62,7 @@ export default function LoginPage() {
               <FormProvider {...form}>
                 <form onSubmit={handleLogin} className="flex flex-col gap-5">
                   <FormInput<LoginFormInput>
-                    name="phone"
+                    name="phone_number"
                     label="Номер телефона"
                     placeholder="+375 29 123-45-67"
                     autoComplete="tel"

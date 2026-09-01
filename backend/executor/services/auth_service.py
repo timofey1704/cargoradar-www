@@ -96,6 +96,7 @@ async def register_executor(data: ExecutorRegister, db: AsyncSession) -> TokenRe
         phone_number=data.phone_number,
         price_per_km=data.price_per_km,
         hashed_password=hashed,
+        privacy_accepted=data.privacy_accepted
     )
 
     await _create_profile(data, executor.id, db)

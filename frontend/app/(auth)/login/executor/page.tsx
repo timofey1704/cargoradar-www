@@ -21,7 +21,7 @@ export default function ExecutorLoginPage() {
   } = useAppForm({
     schema: loginSchema,
     defaultValues: {
-      phone: '',
+      phone_number: '',
       password: '',
     },
   })
@@ -72,7 +72,7 @@ export default function ExecutorLoginPage() {
                   className="flex flex-col gap-5"
                 >
                   <FormInput<LoginFormInput>
-                    name="phone"
+                    name="phone_number"
                     label="Номер телефона"
                     placeholder="+375 29 123-45-67"
                     autoComplete="tel"

@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { belarusPhoneSchema } from '@/lib/validation/phone'
 
 export const loginSchema = z.object({
-  phone: belarusPhoneSchema,
+  phone_number: belarusPhoneSchema,
 
   password: z
     .string()

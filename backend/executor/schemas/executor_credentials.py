@@ -23,6 +23,7 @@ class ExecutorRegister(CommonCredentialsFields):
     email: EmailStr
     type: ExecutorTypes
     price_per_km: int | None = Field(default=None, ge=0)
+    privacy_accepted: bool = Field(default=True, description="Принятие политики конфиденциальности")
 
     # профиль, соответствующий типу аккаунта
     vehicle: VehicleCreate | None = None   # carrier

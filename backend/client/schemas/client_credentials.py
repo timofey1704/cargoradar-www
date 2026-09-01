@@ -6,4 +6,5 @@ class ClientRegister(CommonCredentialsFields):
 
     name: str = Field(min_length=1, max_length=255)
     email: EmailStr
-    VIN_code: str = Field(max_length=17, min_length=17)
+    VIN_code: str | None = Field(default=None, min_length=17, max_length=17)
+    privacy_accepted: bool = Field(default=True, description="Принятие политики конфиденциальности")

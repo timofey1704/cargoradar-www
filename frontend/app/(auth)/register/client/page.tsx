@@ -1,15 +1,13 @@
 'use client'
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { FormProvider } from 'react-hook-form'
 import { ArrowRight, Check, ShieldCheck, Truck, UserPlus } from 'lucide-react'
 
 import { FormInput } from '@/components/ui/form-input'
 import { useAppForm } from '@/hooks/use-app-form'
-import {
-  registerSchema,
-  type RegisterFormInput,
-} from '../../../../schemas/auth/register/clientSchema'
+import { registerSchema, type RegisterFormInput } from '@/schemas/auth/register/clientSchema'
 import { useRegister } from '@/hooks/use-register'
 import { clientRegister } from '@/lib/auth/register'
 
@@ -20,6 +18,7 @@ const benefits = [
 ]
 
 export default function ClientRegisterPage() {
+  const router = useRouter()
   const { form } = useAppForm({
     schema: registerSchema,
     defaultValues: {
@@ -34,7 +33,11 @@ export default function ClientRegisterPage() {
   const { mutate: register, isPending } = useRegister(clientRegister)
 
   const handleRegister = form.handleSubmit(values => {
-    register(values)
+    register(values, {
+      onSuccess: () => {
+        router.push('/account')
+      },
+    })
   })
 
   return (

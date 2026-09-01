@@ -1,7 +1,8 @@
 'use client'
 
 import type { InputHTMLAttributes } from 'react'
-import { useFormContext, type FieldValues, type Path } from 'react-hook-form'
+import { useFormContext } from 'react-hook-form'
+import type { FieldValues, Path, RegisterOptions } from 'react-hook-form'
 
 import { EyeOff, Eye } from 'lucide-react'
 
@@ -14,6 +15,7 @@ interface FormInputProps<T extends FieldValues> extends Omit<
   isPassword?: boolean
   isVisible?: boolean
   togglePasswordVisibility?: () => void
+  registerOptions?: RegisterOptions<T, Path<T>>
 }
 
 function FormInput<T extends FieldValues>({
@@ -22,6 +24,7 @@ function FormInput<T extends FieldValues>({
   isPassword = false,
   isVisible = false,
   togglePasswordVisibility,
+  registerOptions,
   className = '',
   ...props
 }: FormInputProps<T>) {
@@ -44,7 +47,7 @@ function FormInput<T extends FieldValues>({
       <div className="relative">
         <input
           {...props}
-          {...register(name)}
+          {...register(name, registerOptions)}
           id={name}
           type={isPassword && !isVisible ? 'password' : (props.type ?? 'text')}
           aria-invalid={hasError}

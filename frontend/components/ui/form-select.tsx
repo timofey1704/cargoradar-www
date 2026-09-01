@@ -58,6 +58,7 @@ function FormSelect<T extends FieldValues>({
       <Select
         {...props}
         inputId={name}
+        instanceId={name}
         options={options}
         value={selectedOption}
         placeholder={placeholder}

@@ -10,6 +10,9 @@ export const registerSchema = z.object({
     .min(1, 'Введите пароль')
     .min(8, 'Пароль должен содержать минимум 8 символов'),
   VIN_code: z.string().length(17, 'VIN код должен содержать 17 символов').optional(),
+  privacyAccepted: z.literal(true, {
+    error: 'Необходимо принять политику конфиденциальности',
+  }),
 })
 
 export type RegisterFormInput = z.input<typeof registerSchema>

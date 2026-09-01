@@ -1,16 +1,14 @@
 'use client'
 
 import type { InputHTMLAttributes } from 'react'
-import {
-  useFormContext,
-  type FieldValues,
-  type Path,
-} from 'react-hook-form'
+import { useFormContext, type FieldValues, type Path } from 'react-hook-form'
 
 import { EyeOff, Eye } from 'lucide-react'
 
-interface FormInputProps<T extends FieldValues>
-  extends Omit<InputHTMLAttributes<HTMLInputElement>, 'name'> {
+interface FormInputProps<T extends FieldValues> extends Omit<
+  InputHTMLAttributes<HTMLInputElement>,
+  'name'
+> {
   name: Path<T>
   label?: string
   isPassword?: boolean
@@ -38,10 +36,7 @@ function FormInput<T extends FieldValues>({
   return (
     <div className="flex w-full flex-col gap-1.5">
       {label && (
-        <label
-          htmlFor={name}
-          className="text-sm font-medium text-gray-800"
-        >
+        <label htmlFor={name} className="text-sm font-medium text-gray-800">
           {label}
         </label>
       )}
@@ -49,17 +44,14 @@ function FormInput<T extends FieldValues>({
       <div className="relative">
         <input
           {...props}
+          {...register(name)}
           id={name}
-          type={
-            isPassword && !isVisible
-              ? 'password'
-              : props.type ?? 'text'
-          }
+          type={isPassword && !isVisible ? 'password' : (props.type ?? 'text')}
           aria-invalid={hasError}
           aria-describedby={hasError ? `${name}-error` : undefined}
           className={[
             'h-13 w-full rounded-xl border bg-white px-4 text-sm text-gray-900',
-            'outline-none transition-all duration-200',
+            'transition-all duration-200 outline-none',
             'placeholder:text-gray-400',
             'focus:ring-2',
             hasError
@@ -68,34 +60,22 @@ function FormInput<T extends FieldValues>({
             isPassword ? 'pr-12' : '',
             className,
           ].join(' ')}
-          {...register(name)}
         />
 
         {isPassword && (
           <button
             type="button"
             onClick={togglePasswordVisibility}
-            aria-label={
-              isVisible
-                ? 'Скрыть пароль'
-                : 'Показать пароль'
-            }
+            aria-label={isVisible ? 'Скрыть пароль' : 'Показать пароль'}
             className="absolute top-1/2 right-3 flex size-9 -translate-y-1/2 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700"
           >
-            {isVisible ? (
-              <EyeOff className="size-4" />
-            ) : (
-              <Eye className="size-4" />
-            )}
+            {isVisible ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
           </button>
         )}
       </div>
 
       {typeof error === 'string' && (
-        <span
-          id={`${name}-error`}
-          className="text-xs font-medium text-red-500"
-        >
+        <span id={`${name}-error`} className="text-xs font-medium text-red-500">
           {error}
         </span>
       )}

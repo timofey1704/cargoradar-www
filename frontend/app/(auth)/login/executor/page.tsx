@@ -11,7 +11,7 @@ import {
   type LoginFormInput,
   type LoginFormOutput,
 } from '@/schemas/auth/login/loginSchema'
-import { executor_login } from '@/lib/auth/login'
+import { executorLogin } from '@/lib/auth/login'
 
 export default function ExecutorLoginPage() {
   const {
@@ -27,7 +27,7 @@ export default function ExecutorLoginPage() {
   })
 
   const handleLogin = async (values: LoginFormOutput) => {
-    await executor_login(values)
+    await executorLogin(values)
   }
 
   return (

@@ -30,6 +30,9 @@ export const registerSchema = z.object({
     .min(8, 'Пароль должен содержать минимум 8 символов'),
   type: executorTypeSchema,
   car: carSchema.optional(),
+  privacyAccepted: z.literal(true, {
+    error: 'Необходимо принять политику конфиденциальности',
+  }),
 })
 
 export type RegisterFormInput = z.input<typeof registerSchema>

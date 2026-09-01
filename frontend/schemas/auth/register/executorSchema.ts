@@ -21,63 +21,75 @@ export const ExecutorTypesNames: Record<ExecutorType, string> = {
   towtruck: 'Эвакуатор',
 }
 
-/**
- * Схема состояния автомобиля внутри формы.
- *
- * Все поля, которые пользователь должен заполнить,
- * могут быть undefined до момента заполнения.
- */
-const carFormSchema = carSchema.partial()
+const commonFields = {
+  name: z.string().min(1, 'Введите имя'),
 
-export const registerSchema = z
-  .object({
-    name: z.string().min(1, 'Введите имя'),
+  phone_number: belarusPhoneSchema,
 
-    phone_number: belarusPhoneSchema,
+  email: z.email('Введите корректный email'),
 
-    email: z.email('Введите корректный email'),
+  password: z
+    .string()
+    .min(1, 'Введите пароль')
+    .min(8, 'Пароль должен содержать минимум 8 символов'),
 
-    password: z
-      .string()
-      .min(1, 'Введите пароль')
-      .min(8, 'Пароль должен содержать минимум 8 символов'),
+  privacy_accepted: z.literal(true, {
+    error: 'Необходимо принять политику конфиденциальности',
+  }),
+}
 
-    type: executorTypeSchema,
+const carrierSchema = z.object({
+  ...commonFields,
 
-    cars: z.array(carFormSchema).optional(),
+  type: z.literal('carrier'),
 
-    privacy_accepted: z.literal(true, {
-      error: 'Необходимо принять политику конфиденциальности',
-    }),
-  })
-  .superRefine((data, ctx) => {
-    // для перевозчика автомобиль обязателен
-    if (data.type === 'carrier') {
-      if (!data.cars?.length) {
-        ctx.addIssue({
-          code: 'custom',
-          path: ['cars'],
-          message: 'Добавьте хотя бы один автомобиль',
-        })
+  cars: z.array(carSchema).min(1, 'Добавьте хотя бы один автомобиль'),
+})
 
-        return
-      }
+const supplierSchema = z.object({
+  ...commonFields,
 
-      // каждый автомобиль должен соответствовать полноценной carSchema
-      data.cars.forEach((car, index) => {
-        const result = carSchema.safeParse(car)
+  type: z.literal('supplier'),
 
-        if (!result.success) {
-          result.error.issues.forEach(issue => {
-            ctx.addIssue({
-              ...issue,
-              path: ['cars', index, ...issue.path],
-            })
-          })
-        }
-      })
-    }
-  })
+  legal_name: z.string().min(1, 'Введите название юр. лица'),
+
+  UNP: z
+    .string()
+    .min(9, 'УНП должен содержать 9 символов')
+    .max(9, 'УНП должен содержать 9 символов'),
+
+  pickup_point: z.string().min(1, 'Введите точку выдачи'),
+})
+
+const serviceSchema = z.object({
+  ...commonFields,
+
+  type: z.literal('service'),
+
+  legal_name: z.string().min(1, 'Введите название юр. лица'),
+
+  UNP: z
+    .string()
+    .min(9, 'УНП должен содержать 9 символов')
+    .max(9, 'УНП должен содержать 9 символов'),
+
+  service_address: z.string().min(1, 'Введите адрес СТО'),
+
+  brands: z.array(z.string()).min(1, 'Выберите хотя бы одну марку автомобиля'),
+})
+
+const towtruckSchema = z.object({
+  ...commonFields,
+
+  type: z.literal('towtruck'),
+})
+
+export const registerSchema = z.discriminatedUnion('type', [
+  carrierSchema,
+  supplierSchema,
+  serviceSchema,
+  towtruckSchema,
+])
 
 export type RegisterFormInput = z.input<typeof registerSchema>
 export type RegisterFormOutput = z.output<typeof registerSchema>

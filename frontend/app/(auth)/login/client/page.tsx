@@ -10,6 +10,7 @@ import { useAppForm } from '@/hooks/use-app-form'
 import { useLogin } from '@/hooks/use-login'
 import { clientLogin } from '@/lib/auth/login'
 import { loginSchema, type LoginFormInput } from '@/schemas/auth/login/loginSchema'
+import { Button } from '@/components/ui/button'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -90,20 +91,13 @@ export default function LoginPage() {
                     </div>
                   </div>
 
-                  <button
-                    type="submit"
-                    disabled={isPending}
-                    className="mt-2 flex h-13 w-full items-center justify-center gap-2 rounded-xl bg-orange-500 px-5 text-sm font-semibold text-white shadow-lg shadow-orange-500/20 transition-all duration-200 hover:bg-orange-600 hover:shadow-orange-500/30 focus:ring-2 focus:ring-orange-500/30 focus:outline-none disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    {isPending ? (
-                      'Выполняем вход...'
-                    ) : (
-                      <>
-                        Войти
-                        <ArrowRight className="size-4" />
-                      </>
-                    )}
-                  </button>
+                  <Button
+                    disabled={form.formState.isSubmitting || isPending}
+                    isSubmitting={isPending}
+                    defaultText="Зарегистрироваться"
+                    loadingText="Создаём аккаунт..."
+                    showArrow={false}
+                  />
                 </form>
               </FormProvider>
 

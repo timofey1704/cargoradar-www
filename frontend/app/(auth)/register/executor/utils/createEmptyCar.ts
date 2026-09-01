@@ -1,13 +1,13 @@
-import type { CarFormInput } from '@/schemas/car/carSchema'
+import type { CarFormOutput } from '@/schemas/car/carSchema'
 
-export const createEmptyCar = (): CarFormInput => ({
+export const createEmptyCar = (): CarFormOutput => ({
   brand: '',
   model: '',
-  cargo_capacity: undefined,
-  volume_capacity: undefined,
-  car_type: undefined,
+  cargo_capacity: 0,
+  volume_capacity: 0,
+  car_type: 'sedan',
   license_plate: '',
-  manufacture_year: undefined,
+  manufacture_year: 2024,
   photo: undefined,
   VIN: '',
 })

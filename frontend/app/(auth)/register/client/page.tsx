@@ -10,6 +10,7 @@ import { useAppForm } from '@/hooks/use-app-form'
 import { registerSchema, type RegisterFormInput } from '@/schemas/auth/register/clientSchema'
 import { useRegister } from '@/hooks/use-register'
 import { clientRegister } from '@/lib/auth/register'
+import { Button } from '@/components/ui/button'
 
 const benefits = [
   'Создавайте заявки на перевозку',
@@ -130,20 +131,13 @@ export default function ClientRegisterPage() {
                   </label>
 
                   {/* Submit */}
-                  <button
-                    type="submit"
-                    disabled={isPending}
-                    className="mt-2 flex h-13 w-full items-center justify-center gap-2 rounded-xl bg-orange-500 px-5 text-sm font-semibold text-white shadow-lg shadow-orange-500/20 transition-all duration-200 hover:bg-orange-600 hover:shadow-orange-500/30 focus:ring-2 focus:ring-orange-500/30 focus:outline-none disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    {isPending ? (
-                      'Создаём аккаунт...'
-                    ) : (
-                      <>
-                        Зарегистрироваться
-                        <ArrowRight className="size-4" />
-                      </>
-                    )}
-                  </button>
+                  <Button
+                    disabled={form.formState.isSubmitting || isPending}
+                    isSubmitting={isPending}
+                    defaultText="Зарегистрироваться"
+                    loadingText="Создаём аккаунт..."
+                    showArrow={false}
+                  />
                 </form>
               </FormProvider>
 

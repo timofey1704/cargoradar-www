@@ -1,24 +1,20 @@
 'use client'
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { FormProvider } from 'react-hook-form'
 import { ArrowRight, MapPin, Package, Truck } from 'lucide-react'
 
 import { FormInput } from '@/components/ui/form-input'
 import { useAppForm } from '@/hooks/use-app-form'
-import {
-  loginSchema,
-  type LoginFormInput,
-  type LoginFormOutput,
-} from '@/schemas/auth/login/loginSchema'
+import { loginSchema, type LoginFormInput } from '@/schemas/auth/login/loginSchema'
 import { executorLogin } from '@/lib/auth/login'
+import { useLogin } from '@/hooks/use-login'
+import { Button } from '@/components/ui/button'
 
 export default function ExecutorLoginPage() {
-  const {
-    form,
-    isVisible,
-    togglePasswordVisibility,
-  } = useAppForm({
+  const router = useRouter()
+  const { form, isVisible, togglePasswordVisibility } = useAppForm({
     schema: loginSchema,
     defaultValues: {
       phone_number: '',
@@ -26,9 +22,15 @@ export default function ExecutorLoginPage() {
     },
   })
 
-  const handleLogin = async (values: LoginFormOutput) => {
-    await executorLogin(values)
-  }
+  const { mutate: login, isPending } = useLogin(executorLogin)
+
+  const handleLogin = form.handleSubmit(values => {
+    login(values, {
+      onSuccess: () => {
+        router.push('/executor')
+      },
+    })
+  })
 
   return (
     <main className="min-h-screen bg-[#F7F7F5] px-4 py-6 sm:px-6 lg:px-8">
@@ -38,10 +40,7 @@ export default function ExecutorLoginPage() {
           <div className="flex items-center px-6 py-10 sm:px-10 lg:px-16 lg:py-14">
             <div className="mx-auto w-full max-w-md">
               {/* Logo */}
-              <Link
-                href="/"
-                className="mb-10 inline-flex items-center gap-2"
-              >
+              <Link href="/" className="mb-10 inline-flex items-center gap-2">
                 <div className="flex size-10 items-center justify-center rounded-xl bg-orange-500 text-white shadow-lg shadow-orange-500/20">
                   <Truck className="size-5" strokeWidth={2.2} />
                 </div>
@@ -61,16 +60,12 @@ export default function ExecutorLoginPage() {
                 </h1>
 
                 <p className="mt-3 text-sm leading-6 text-gray-500">
-                  Войдите в аккаунт, чтобы находить заказы и
-                  управлять своими перевозками.
+                  Войдите в аккаунт, чтобы находить заказы и управлять своими перевозками.
                 </p>
               </div>
 
               <FormProvider {...form}>
-                <form
-                  onSubmit={form.handleSubmit(handleLogin)}
-                  className="flex flex-col gap-5"
-                >
+                <form onSubmit={handleLogin} className="flex flex-col gap-5">
                   <FormInput<LoginFormInput>
                     name="phone_number"
                     label="Номер телефона"
@@ -87,9 +82,7 @@ export default function ExecutorLoginPage() {
                       autoComplete="current-password"
                       isPassword
                       isVisible={isVisible}
-                      togglePasswordVisibility={
-                        togglePasswordVisibility
-                      }
+                      togglePasswordVisibility={togglePasswordVisibility}
                     />
 
                     <div className="mt-2 flex justify-end">
@@ -102,29 +95,20 @@ export default function ExecutorLoginPage() {
                     </div>
                   </div>
 
-                  <button
-                    type="submit"
-                    disabled={form.formState.isSubmitting}
-                    className="mt-2 flex h-13 w-full items-center justify-center gap-2 rounded-xl bg-orange-500 px-5 text-sm font-semibold text-white shadow-lg shadow-orange-500/20 transition-all duration-200 hover:bg-orange-600 hover:shadow-orange-500/30 focus:ring-2 focus:ring-orange-500/30 focus:outline-none disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    {form.formState.isSubmitting ? (
-                      'Выполняем вход...'
-                    ) : (
-                      <>
-                        Войти
-                        <ArrowRight className="size-4" />
-                      </>
-                    )}
-                  </button>
+                  <Button
+                    disabled={form.formState.isSubmitting || isPending}
+                    isSubmitting={isPending}
+                    defaultText="Зарегистрироваться"
+                    loadingText="Создаём аккаунт..."
+                    showArrow={false}
+                  />
                 </form>
               </FormProvider>
 
               <div className="my-8 flex items-center gap-4">
                 <div className="h-px flex-1 bg-gray-200" />
 
-                <span className="text-xs font-medium text-gray-400">
-                  ИЛИ
-                </span>
+                <span className="text-xs font-medium text-gray-400">ИЛИ</span>
 
                 <div className="h-px flex-1 bg-gray-200" />
               </div>
@@ -145,9 +129,7 @@ export default function ExecutorLoginPage() {
                   className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-400 transition-colors hover:text-gray-700"
                 >
                   Вы клиент?
-                  <span className="text-gray-600">
-                    Войти как клиент
-                  </span>
+                  <span className="text-gray-600">Войти как клиент</span>
                   <ArrowRight className="size-3.5" />
                 </Link>
               </div>
@@ -166,18 +148,14 @@ export default function ExecutorLoginPage() {
                   Для исполнителей
                 </div>
 
-                <h2 className="max-w-md text-3xl font-bold leading-tight tracking-tight text-white xl:text-4xl">
+                <h2 className="max-w-md text-3xl leading-tight font-bold tracking-tight text-white xl:text-4xl">
                   Находите новые
-                  <span className="text-orange-400">
-                    {' '}
-                    заказы на перевозку.
-                  </span>
+                  <span className="text-orange-400"> заказы на перевозку.</span>
                 </h2>
 
                 <p className="mt-5 max-w-sm text-sm leading-6 text-gray-400">
-                  Выбирайте подходящие маршруты, управляйте
-                  заказами и развивайте свой бизнес вместе с
-                  CargoRadar.
+                  Выбирайте подходящие маршруты, управляйте заказами и развивайте свой бизнес вместе
+                  с CargoRadar.
                 </p>
               </div>
 
@@ -191,12 +169,8 @@ export default function ExecutorLoginPage() {
                       </div>
 
                       <div>
-                        <p className="text-xs font-semibold text-white">
-                          Новый заказ
-                        </p>
-                        <p className="text-[10px] text-gray-500">
-                          Только что
-                        </p>
+                        <p className="text-xs font-semibold text-white">Новый заказ</p>
+                        <p className="text-[10px] text-gray-500">Только что</p>
                       </div>
                     </div>
 
@@ -218,46 +192,34 @@ export default function ExecutorLoginPage() {
 
                     <div className="flex flex-1 flex-col gap-6">
                       <div>
-                        <p className="text-[10px] font-medium uppercase tracking-wider text-gray-500">
+                        <p className="text-[10px] font-medium tracking-wider text-gray-500 uppercase">
                           Откуда
                         </p>
 
-                        <p className="mt-1 text-sm font-semibold text-white">
-                          Минск
-                        </p>
+                        <p className="mt-1 text-sm font-semibold text-white">Минск</p>
                       </div>
 
                       <div>
-                        <p className="text-[10px] font-medium uppercase tracking-wider text-gray-500">
+                        <p className="text-[10px] font-medium tracking-wider text-gray-500 uppercase">
                           Куда
                         </p>
 
-                        <p className="mt-1 text-sm font-semibold text-white">
-                          Гродно
-                        </p>
+                        <p className="mt-1 text-sm font-semibold text-white">Гродно</p>
                       </div>
                     </div>
                   </div>
 
                   <div className="mt-5 grid grid-cols-2 gap-3 border-t border-white/10 pt-4">
                     <div>
-                      <p className="text-[10px] text-gray-500">
-                        Вес
-                      </p>
+                      <p className="text-[10px] text-gray-500">Вес</p>
 
-                      <p className="mt-1 text-xs font-medium text-gray-300">
-                        12 тонн
-                      </p>
+                      <p className="mt-1 text-xs font-medium text-gray-300">12 тонн</p>
                     </div>
 
                     <div>
-                      <p className="text-[10px] text-gray-500">
-                        Тип кузова
-                      </p>
+                      <p className="text-[10px] text-gray-500">Тип кузова</p>
 
-                      <p className="mt-1 text-xs font-medium text-gray-300">
-                        Тент
-                      </p>
+                      <p className="mt-1 text-xs font-medium text-gray-300">Тент</p>
                     </div>
                   </div>
                 </div>
@@ -269,20 +231,14 @@ export default function ExecutorLoginPage() {
                   </div>
 
                   <div>
-                    <p className="text-[10px] text-gray-500">
-                      Ваш транспорт
-                    </p>
+                    <p className="text-[10px] text-gray-500">Ваш транспорт</p>
 
-                    <p className="text-xs font-semibold text-white">
-                      Готов к работе
-                    </p>
+                    <p className="text-xs font-semibold text-white">Готов к работе</p>
                   </div>
                 </div>
               </div>
 
-              <p className="text-xs text-gray-600">
-                Больше заказов. Меньше простоя.
-              </p>
+              <p className="text-xs text-gray-600">Больше заказов. Меньше простоя.</p>
             </div>
           </div>
         </div>

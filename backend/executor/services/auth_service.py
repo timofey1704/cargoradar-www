@@ -38,9 +38,14 @@ async def _issue_tokens(executor_id: int, db: AsyncSession) -> TokenResponse:
 
 
 async def _create_profile(data: ExecutorRegister, executor_id: int, db: AsyncSession) -> None:
-    """Создаёт профиль, соответствующий типу аккаунта (схема требует ровно один)."""
-    if data.vehicle is not None:
-        db.add(Vehicle(executor_id=executor_id, **data.vehicle.model_dump()))
+    """Создаёт профиль, соответствующий типу аккаунта (схема требует ровно один).
+
+    Для перевозчика (carrier) из списка `cars` создаётся по строке в таблице
+    vehicles — один исполнитель может иметь несколько автомобилей.
+    """
+    if data.cars is not None:
+        for car in data.cars:
+            db.add(Vehicle(executor_id=executor_id, **car.model_dump()))
         return
 
     if data.service is not None:

@@ -10,7 +10,7 @@ from executor.schemas.vehicle import VehicleCreate
 
 # какой профиль ожидается для каждого типа аккаунта
 _EXECUTOR_PROFILE_FIELDS: dict[ExecutorTypes, str] = {
-    ExecutorTypes.carrier: "vehicle",
+    ExecutorTypes.carrier: "cars",
     ExecutorTypes.service: "service",
     ExecutorTypes.supplier: "supplier",
     ExecutorTypes.towtruck: "towtruck",
@@ -26,7 +26,9 @@ class ExecutorRegister(CommonCredentialsFields):
     privacy_accepted: bool = Field(default=True, description="Принятие политики конфиденциальности")
 
     # профиль, соответствующий типу аккаунта
-    vehicle: VehicleCreate | None = None   # carrier
+    cars: list[VehicleCreate] | None = Field(
+        default=None, min_length=1, description="Транспорт перевозчика (carrier)"
+    )
     service: ServiceCreate | None = None   # service (СТО)
     supplier: SupplierCreate | None = None  # supplier
     towtruck: TowTruckCreate | None = None  # towtruck

@@ -1,4 +1,5 @@
 import logging
+from enum import Enum
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
@@ -27,6 +28,25 @@ def _mask_sensitive(data: dict) -> dict:
     if "password" in masked:
         masked["password"] = "***"
     return masked
+
+
+def _json_safe(value: object) -> object:
+    """Рекурсивно приводит значение к JSON-сериализуемому виду.
+
+    Pydantic v2 в случае ``model_validator`` кладёт сам объект исключения
+    (например ``ValueError``) в ``ctx.error`` внутри ``exc.errors()``.
+    ``json.dumps`` такие объекты не сериализует, поэтому без этого шага
+    любой validation error превращался бы из 422 в 500.
+    """
+    if isinstance(value, dict):
+        return {key: _json_safe(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple, set)):
+        return [_json_safe(item) for item in value]
+    if isinstance(value, Exception):
+        return str(value)
+    if isinstance(value, Enum):
+        return value.value
+    return value
 
 
 @app.exception_handler(RequestValidationError)
@@ -62,9 +82,10 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         )
     
     # Return only errors in response (like default 422)
+    # Очищаем ошибки от не-JSON-сериализуемых объектов (ValueError в ctx).
     return JSONResponse(
         status_code=422,
-        content={"detail": exc.errors()},
+        content={"detail": _json_safe(exc.errors())},
     )
 
 # CORS — настроить разрешенные источники, методы и заголовки для запросов из браузера

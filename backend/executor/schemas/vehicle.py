@@ -7,7 +7,13 @@ from executor.models.enums.vehicle_types import CarTypes, VehicleTypes
 class VehicleBase(BaseModel):
     """Общие поля транспорта исполнителя."""
 
-    type: VehicleTypes
+    type: VehicleTypes = Field(
+        default=VehicleTypes.truck,
+        description=(
+            "Тип транспорта. В БД поле обязательное, но форма регистрации "
+            "перевозчика пока его не собирает — по умолчанию грузовик."
+        ),
+    )
     brand: CarBrands
     model: str = Field(min_length=1, max_length=255)
     cargo_capacity: int = Field(gt=0, description="Грузоподъёмность, кг")

@@ -1,6 +1,6 @@
 import type { LoginFormOutput } from '@/schemas/auth/login/loginSchema'
 
-async function login_request(values: LoginFormOutput, url: string) {
+async function loginRequest(values: LoginFormOutput, url: string) {
   const response = await fetch(url, {
     method: 'POST',
     headers: {
@@ -16,10 +16,10 @@ async function login_request(values: LoginFormOutput, url: string) {
   return response.json()
 }
 
-export async function client_login(values: LoginFormOutput) {
-  return login_request(values, `${process.env.NEXT_PUBLIC_API_URL}/client/auth/login`)
+export async function clientLogin(values: LoginFormOutput) {
+  return loginRequest(values, `${process.env.NEXT_PUBLIC_API_URL}/client/auth/login`)
 }
 
-export async function executor_login(values: LoginFormOutput) {
-  return login_request(values, `${process.env.NEXT_PUBLIC_API_URL}/client/executor/login`)
+export async function executorLogin(values: LoginFormOutput) {
+  return loginRequest(values, `${process.env.NEXT_PUBLIC_API_URL}/executor/auth/login`)
 }

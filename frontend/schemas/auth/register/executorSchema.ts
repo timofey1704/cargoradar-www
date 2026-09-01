@@ -75,7 +75,16 @@ const serviceSchema = z.object({
 
   service_address: z.string().min(1, 'Введите адрес СТО'),
 
-  brands: z.array(z.string()).min(1, 'Выберите хотя бы одну марку автомобиля'),
+  brands: z
+    .array(z.string())
+    .min(1, 'Выберите хотя бы одну марку автомобиля')
+    .refine(
+      value =>
+        (value.length > 0 && !value.includes('all')) || (value.includes('all') && value.length > 0),
+      {
+        message: 'Выберите хотя бы одну марку автомобиля',
+      }
+    ),
 })
 
 const towtruckSchema = z.object({

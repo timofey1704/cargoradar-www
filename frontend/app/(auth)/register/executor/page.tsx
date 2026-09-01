@@ -52,6 +52,17 @@ export default function RegisterPage() {
         shouldValidate: false,
       })
     }
+
+    if (accountType === 'service') {
+      const currentBrands = form.getValues('brands')
+
+      if (!Array.isArray(currentBrands) || currentBrands.length === 0) {
+        form.setValue('brands', ['all'], {
+          shouldDirty: true,
+          shouldValidate: true,
+        })
+      }
+    }
   }, [accountType, form])
 
   const { mutate: register, isPending } = useRegister(executorRegister)

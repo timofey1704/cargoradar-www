@@ -98,8 +98,8 @@ export default function ExecutorLoginPage() {
                   <Button
                     disabled={form.formState.isSubmitting || isPending}
                     isSubmitting={isPending}
-                    defaultText="Зарегистрироваться"
-                    loadingText="Создаём аккаунт..."
+                    defaultText="Войти"
+                    loadingText="Входим..."
                     showArrow={false}
                   />
                 </form>

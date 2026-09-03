@@ -87,7 +87,7 @@ export const Button: React.FC<ButtonProps> = ({
     >
       {isSubmitting ? (
         <>
-          {icon || <span className="animate-spin">⏳</span>}
+          {/* {icon || <span className="animate-spin">⏳</span>} */}
           {children || loadingText}
         </>
       ) : (

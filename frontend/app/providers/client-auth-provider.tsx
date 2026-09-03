@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect } from 'react'
-
 import { useCurrentUser } from '@/hooks/use-current-user'
 import useClientStore from '@/store/clientStore'
 

@@ -24,6 +24,7 @@ async def update_account_data(
     name: str | None = None,
     email: str | None = None,
     phone_number: str | None = None,
+    image_url: str | None,
     is_notifications_enabled: bool | None = None,
 ) -> Executor:
     """Обновляет переданные поля профиля исполнителя.
@@ -43,6 +44,8 @@ async def update_account_data(
         update_data["email"] = email
     if phone_number is not None:
         update_data["phone_number"] = phone_number
+    if image_url is not None:
+        update_data["image_url"] = phone_number
     if is_notifications_enabled is not None:
         update_data["is_notifications_enabled"] = is_notifications_enabled
 

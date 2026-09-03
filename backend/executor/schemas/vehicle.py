@@ -20,6 +20,7 @@ class VehicleBase(BaseModel):
     volume_capacity: int | None = Field(default=None, gt=0, description="Объём, м³")
     car_type: CarTypes | None = None  # тип кузова
     license_plate: str = Field(min_length=1, max_length=10)
+    price_per_km: str | None = None
     manufacture_year: int = Field(ge=1960, le=2026)
     photo_url: str | None = Field(default=None, max_length=255)
     VIN: str | None = Field(default=None, min_length=1, max_length=17)
@@ -27,7 +28,6 @@ class VehicleBase(BaseModel):
 
 class VehicleCreate(VehicleBase):
     """Данные для создания/сохранения транспорта (в т.ч. при регистрации)."""
-
 
 class VehicleRead(VehicleBase):
     """Публичные данные транспорта исполнителя."""

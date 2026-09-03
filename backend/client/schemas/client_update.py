@@ -2,7 +2,6 @@ from pydantic import BaseModel, EmailStr, Field
 
 from utils.phone_number_validator import BelarusPhoneNumber
 
-
 class ClientUpdate(BaseModel):
     """Поля профиля клиента, которые он может изменить самостоятельно.
 
@@ -14,3 +13,4 @@ class ClientUpdate(BaseModel):
     phone_number: BelarusPhoneNumber | None = None
     is_notifications_enabled: bool | None = None
     is_active: bool | None = None
+    image_url: str | None

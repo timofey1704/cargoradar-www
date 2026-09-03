@@ -12,7 +12,7 @@ class ExecutorRead(BaseModel):
     email: EmailStr
     phone_number: BelarusPhoneNumber
     type: ExecutorTypes
-    price_per_km: int | None
+    image_url: str | None
     is_notifications_enabled: bool
     is_active: bool
 

@@ -24,7 +24,8 @@ async def update_account_data(
     email: str | None = None,
     phone_number: str | None = None,
     is_notifications_enabled: bool | None = None,
-    is_active: bool | None = None
+    is_active: bool | None = None,
+    image_url: str | None = None
 ) -> Client:
     """Обновляет переданные поля профиля исполнителя.
     None пропускается (поле не передали).
@@ -46,6 +47,8 @@ async def update_account_data(
         update_data["is_notifications_enabled"] = is_notifications_enabled
     if is_active is not None:
         update_data["is_active"] = is_active
+    if image_url is not None:
+        update_data["image_url"] = image_url
 
     for key, value in update_data.items():
         setattr(client, key, value)

@@ -46,6 +46,7 @@ class Vehicle(Base):
     nullable=False,
 )
     photo_url: Mapped[str] = mapped_column(String(255), nullable=True)
+    price_per_km: Mapped[int] = mapped_column(Integer, nullable=True)
     VIN: Mapped[str] = mapped_column(String(17), nullable=True, unique=True)
     
     __table_args__ = (

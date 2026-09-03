@@ -13,4 +13,5 @@ class ExecutorUpdate(BaseModel):
     email: EmailStr | None = None
     phone_number: BelarusPhoneNumber | None = None
     is_notifications_enabled: bool | None = None
+    image_url: str | None
     is_active: bool | None = None

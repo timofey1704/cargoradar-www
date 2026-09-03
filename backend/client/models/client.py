@@ -21,6 +21,7 @@ class Client(Base):
     phone_number: Mapped[str] = mapped_column(String(20), unique=True, index=True)
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
     VIN_code: Mapped[str | None] = mapped_column(String(17), nullable=True, unique=True, index=True)
+    image_url: Mapped[str] = mapped_column(String(255), nullable=True)
     hashed_password: Mapped[str | None] = mapped_column(String(255), nullable=True)  # null потому что может быть социальный логин
     
     is_notifications_enabled: Mapped[bool] = mapped_column(Boolean, default=True)

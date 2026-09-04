@@ -4,20 +4,9 @@ export interface Client {
   email: string
   phone_number: string
   image?: string
+  type: 'individual' | 'legal'
   VIN_code: string | null
+  membership?: 'free' | 'premium'
   is_notifications_enabled: boolean
   is_active: boolean
 }
-
-export interface NavigationItem {
-  name: string
-  href: string
-  icon: string
-}
-
-export interface AccountSidebarProps {
-  user: Client
-  navigation: NavigationItem[]
-}
-
-export type BurgerProps = Pick<AccountSidebarProps, 'navigation'>

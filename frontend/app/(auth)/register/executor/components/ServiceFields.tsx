@@ -3,7 +3,7 @@ import { FormMultiSelect } from '@/components/ui/form-multi-select'
 import { CAR_BRAND_NAMES } from '@/consts/carBrands'
 import type { RegisterFormInput } from '@/schemas/auth/register/executorSchema'
 
-const SERVICE_BRAND_OPTIONS = Object.entries(CAR_BRAND_NAMES).map(([value, label]) => ({
+export const SERVICE_BRAND_OPTIONS = Object.entries(CAR_BRAND_NAMES).map(([value, label]) => ({
   value,
   label,
 }))

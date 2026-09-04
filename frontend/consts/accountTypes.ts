@@ -1,3 +1,5 @@
+import { Client, Executor } from '@/types'
+
 export const ClientAccountTypeToDisplayName = {
   individual: 'individual',
   legal: 'legal',
@@ -26,23 +28,22 @@ export const displayNameToExecutorAccountType: Record<
   СТО: 'service',
 }
 
-export const getAccountTypeStyles = (accountType: string) => {
-  switch (accountType.toLowerCase()) {
-    // клиенты
-    case 'individual':
-      return 'bg-blue-100 text-blue-800'
-    case 'legal':
-      return 'bg-indigo-100 text-indigo-800'
-
-    // исполнители
-    case 'carrier':
-      return 'bg-emerald-100 text-emerald-800'
-    case 'supplier':
-      return 'bg-amber-100 text-amber-800'
-    case 'service':
-      return 'bg-purple-100 text-purple-800'
-
-    default:
-      return 'bg-gray-100 text-gray-600'
+export function getAccountTypeStyles(
+  accountType: 'client' | 'executor',
+  type: Client['type'] | Executor['type']
+): string {
+  if (accountType === 'client') {
+    const clientStyles: Record<Client['type'], string> = {
+      individual: 'bg-blue-100 text-blue-700',
+      legal: 'bg-purple-100 text-purple-700',
+    }
+    return clientStyles[type as Client['type']]
   }
+
+  const executorStyles: Record<Executor['type'], string> = {
+    carrier: 'bg-green-100 text-green-700',
+    supplier: 'bg-orange-100 text-orange-700',
+    service: 'bg-yellow-100 text-yellow-700',
+  }
+  return executorStyles[type as Executor['type']]
 }

@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { BurgerProps } from '@/types/client'
+import type { BurgerProps } from './types'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import Logout from './logout'
 
-const Burger: React.FC<BurgerProps> = ({ navigation }) => {
+const Burger: React.FC<BurgerProps> = ({ navigation, accountType }) => {
   const [isOpen, setIsOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
 
@@ -50,7 +50,7 @@ const Burger: React.FC<BurgerProps> = ({ navigation }) => {
                   onClick={handleClose}
                 >
                   <Image
-                    src={`/icons/${item.icon}.svg`}
+                    src={`/icons/${item.icon}.png`}
                     alt={item.name}
                     width={20}
                     height={20}
@@ -60,27 +60,8 @@ const Burger: React.FC<BurgerProps> = ({ navigation }) => {
                 </Link>
               )
             })}
+            <Logout accountType={accountType} onClick={handleClose} />
           </nav>
-        </div>
-        <div className="w-full rounded-2xl bg-white p-2 shadow md:w-64">
-          <a
-            href="https://t.me/+9mMS663WT6Y5YWYy"
-            className={`${
-              pathname === '/support'
-                ? 'border-orange translate-x-2 rounded-l-lg border-r-4 bg-gray-100 text-black'
-                : 'rounded-lg text-gray-600 hover:bg-gray-100'
-            } flex items-center p-4 text-sm font-medium transition-all duration-200`}
-          >
-            <Image
-              src={`/icons/support.svg`}
-              alt={'support'}
-              width={20}
-              height={20}
-              className="mr-2"
-            />
-            Поддержка
-          </a>
-          <Logout />
         </div>
       </div>
     </div>

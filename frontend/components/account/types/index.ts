@@ -19,4 +19,7 @@ export type AccountSidebarProps =
       navigation: NavigationItem[]
     }
 
-export type BurgerProps = Pick<AccountSidebarProps, 'navigation'>
+export interface BurgerProps {
+  navigation: NavigationItem[]
+  accountType: 'client' | 'executor'
+}

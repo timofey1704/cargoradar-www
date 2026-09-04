@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 :root {
   --background: #ffffff;
@@ -10,12 +10,100 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --color-orange: #ff6731;
+  --color-gray: #ebebeb;
+  --color-text: #1c1c29;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+  }
+}
+
+h1 {
+  font-size: 32px;
+  line-height: 42px;
+  font-weight: 700;
+  font-style: normal;
+
+  @media (min-width: 640px) {
+    font-size: 40px;
+    line-height: 52px;
+  }
+
+  @media (min-width: 1024px) {
+    font-size: 48px;
+    line-height: 64px;
+  }
+}
+
+h2 {
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 700;
+  font-style: normal;
+
+  @media (min-width: 640px) {
+    font-size: 30px;
+    line-height: 40px;
+  }
+
+  @media (min-width: 1024px) {
+    font-size: 36px;
+    line-height: 48px;
+  }
+}
+
+h3 {
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 700;
+  font-style: normal;
+
+  @media (min-width: 640px) {
+    font-size: 24px;
+    line-height: 32px;
+  }
+
+  @media (min-width: 1024px) {
+    font-size: 28px;
+    line-height: 38px;
+  }
+}
+
+h4 {
+  font-size: 18px;
+  line-height: 24px;
+  font-weight: 700;
+  font-style: normal;
+
+  @media (min-width: 640px) {
+    font-size: 20px;
+    line-height: 26px;
+  }
+
+  @media (min-width: 1024px) {
+    font-size: 24px;
+    line-height: 28px;
+  }
+}
+
+div {
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 400;
+  font-style: normal;
+
+  @media (min-width: 640px) {
+    font-size: 16px;
+    line-height: 24px;
+  }
+
+  @media (min-width: 1024px) {
+    font-size: 18px;
+    line-height: 26px;
   }
 }
 

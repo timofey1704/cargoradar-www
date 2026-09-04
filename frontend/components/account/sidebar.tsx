@@ -119,7 +119,7 @@ const AccountSidebar: React.FC<AccountSidebarProps> = ({ accountType, user, navi
         </div>
 
         <div className="flex items-center pr-6 sm:pr-10 lg:hidden">
-          <Burger navigation={navigation} />
+          <Burger navigation={navigation} accountType={accountType} />
         </div>
       </div>
 
@@ -148,9 +148,9 @@ const AccountSidebar: React.FC<AccountSidebarProps> = ({ accountType, user, navi
               </Link>
             )
           })}
+          <Logout accountType={accountType} />
         </nav>
       </div>
-      <Logout />
     </div>
   )
 }

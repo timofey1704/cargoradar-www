@@ -1,5 +1,7 @@
 from pydantic import BaseModel, ConfigDict, EmailStr
+
 from utils.phone_number_validator import BelarusPhoneNumber
+from client.models.enums.client_types import ClientTypes
 
 
 class ClientRead(BaseModel):
@@ -9,6 +11,7 @@ class ClientRead(BaseModel):
     name: str
     email: EmailStr
     phone_number: BelarusPhoneNumber
+    type: ClientTypes
     VIN_code: str | None
     image_url: str | None
     is_notifications_enabled: bool

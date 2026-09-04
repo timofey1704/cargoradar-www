@@ -10,6 +10,14 @@ export default function ClientAuthProvider({ children }: { children: React.React
   const { data: client, isLoading, isError, error } = useCurrentUser()
 
   useEffect(() => {
+    console.log(
+      '[ClientAuthProvider] effect: isLoading=%s client=%s isError=%s error=%s',
+      isLoading,
+      client ? `yes(id=${client.id})` : 'no',
+      isError,
+      error instanceof Error ? JSON.stringify(error.message) : 'null',
+    )
+
     if (isLoading) return
 
     if (client) {

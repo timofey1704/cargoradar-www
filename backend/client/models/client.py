@@ -3,14 +3,17 @@ from typing import TYPE_CHECKING
 from datetime import datetime
 
 from sqlalchemy import Boolean, String, DateTime, func
+from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from core.database import Base
 
 from client.models.oauth_accounts import OAuthAccount
+from client.models.enums.client_types import ClientTypes
 
 if TYPE_CHECKING:
     from client.models.refresh_token import RefreshToken
+    from client.models.legal_client import LegalClient
 
 
 class Client(Base):
@@ -30,6 +33,11 @@ class Client(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     
+    type: Mapped[ClientTypes] = mapped_column(
+        SQLEnum(ClientTypes),
+        nullable=False,
+    )
+    legal_client : Mapped["LegalClient | None"] = relationship(back_populates="client")
     oauth_accounts: Mapped[list["OAuthAccount"]] = relationship(back_populates="client", cascade="all, delete-orphan")
     refresh_tokens: Mapped[list["RefreshToken"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     

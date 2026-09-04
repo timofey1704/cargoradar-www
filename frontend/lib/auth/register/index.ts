@@ -4,8 +4,9 @@ import type { RegisterFormOutput as ExecutorRegisterFormOutput } from '@/schemas
 type RegisterValues = ClientRegisterFormOutput | ExecutorRegisterFormOutput
 
 function normalizeRegisterPayload(values: RegisterValues): Record<string, unknown> {
-  // клиентская регистрация — отправляем как есть
-  if (!('type' in values)) {
+  // клиентская регистрация — отправляем как есть.
+  // у клиентов всегда {'individual', 'legal'}, а у исполнителей {'carrier','supplier','service','towtruck'}
+  if (values.type === 'individual' || values.type === 'legal') {
     return { ...values }
   }
 

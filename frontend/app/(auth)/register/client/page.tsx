@@ -2,15 +2,19 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { FormProvider } from 'react-hook-form'
+import { FormProvider, useWatch } from 'react-hook-form'
 import { ArrowRight, Check, ShieldCheck, Truck, UserPlus } from 'lucide-react'
 
 import { FormInput } from '@/components/ui/form-input'
+import { FormSelect } from '@/components/ui/form-select'
 import { useAppForm } from '@/hooks/use-app-form'
 import { registerSchema, type RegisterFormInput } from '@/schemas/auth/register/clientSchema'
 import { useRegister } from '@/hooks/use-register'
 import { clientRegister } from '@/lib/auth/register'
 import { Button } from '@/components/ui/button'
+import LegalFields from './components/LegalFields'
+import { objectToSelectOptions } from '@/lib/utils/select'
+import { ClientTypesNames } from '@/schemas/auth/register/clientSchema'
 
 const benefits = [
   'Создавайте заявки на перевозку',
@@ -32,6 +36,11 @@ export default function ClientRegisterPage() {
   })
 
   const { mutate: register, isPending } = useRegister(clientRegister)
+
+  const accountType = useWatch({
+    control: form.control,
+    name: 'type',
+  })
 
   const handleRegister = form.handleSubmit(values => {
     register(values, {
@@ -109,7 +118,13 @@ export default function ClientRegisterPage() {
                     autoComplete="new-password"
                     isPassword
                   />
-
+                  <FormSelect<RegisterFormInput>
+                    name="type"
+                    label="Тип аккаунта"
+                    options={objectToSelectOptions(ClientTypesNames)}
+                    placeholder="Выберите тип аккаунта"
+                  />
+                  {accountType === 'legal' && <LegalFields />}
                   {/* Privacy */}
                   <label className="mt-1 flex cursor-pointer items-start gap-3">
                     <input

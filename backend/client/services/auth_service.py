@@ -16,6 +16,8 @@ from client.schemas.client_credentials import ClientRegister
 
 from client.repositories.client import ClientRepository
 from client.repositories.refresh_token import RefreshTokenRepository
+from client.models.enums.client_types import ClientTypes
+from client.models.legal_client import LegalClient
 
 logger = logging.getLogger(__name__)
 
@@ -52,6 +54,7 @@ async def register_client(data: ClientRegister, db: AsyncSession) -> TokenRespon
 
     hashed = hash_password(data.password)
     client = await repo.create(
+        type=data.type,
         name=data.name,
         email=str(data.email),
         phone_number=data.phone_number,
@@ -60,7 +63,16 @@ async def register_client(data: ClientRegister, db: AsyncSession) -> TokenRespon
         privacy_accepted=data.privacy_accepted
         )
 
-    await db.commit()
+    # Для юридического лица — профиль в отдельной таблице legal_clients.
+    # repo.create уже закоммитил клиента; LegalClient уйдёт в БД вместе с
+    # commit'ом в _issue_tokens.
+    if data.type is ClientTypes.legal:
+        db.add(LegalClient(
+            client_id=client.id,
+            legal_name=data.legal_name,
+            unp=data.UNP,
+            address=data.address,
+        ))
 
     return await _issue_tokens(client.id, db)
 

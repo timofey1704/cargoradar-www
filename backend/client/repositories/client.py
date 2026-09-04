@@ -2,6 +2,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from client.models.client import Client
+from client.models.enums.client_types import ClientTypes
 
 class ClientRepository:
     def __init__(self, db: AsyncSession) -> None:
@@ -17,6 +18,7 @@ class ClientRepository:
 
     async def create(
         self,
+        type: ClientTypes,
         name: str,
         phone_number: str,
         email: str,
@@ -25,6 +27,7 @@ class ClientRepository:
         privacy_accepted: bool = True
     ) -> Client:
         client = Client(
+            type=type,
             name=name,
             email=email,
             hashed_password=hashed_password,

@@ -5,11 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import Logout from './logout'
-import {
-  ClientAccountTypeToDisplayName,
-  ExecutorAccountTypeToDisplayName,
-  getAccountTypeStyles,
-} from '@/consts/accountTypes'
+import { getAccountTypeConfig } from '@/consts/accountTypes'
 import noPhoto from '../../public/images/no-photo.png'
 import { TbPhotoUp } from 'react-icons/tb'
 import showToast from '../ui/toast'
@@ -71,17 +67,17 @@ const AccountSidebar: React.FC<AccountSidebarProps> = ({ accountType, user, navi
 
   if (!user) return null
 
-  const accountTypeLabel =
+  const { label: accountTypeLabel, className: accountTypeClassName } =
     accountType === 'client'
-      ? ClientAccountTypeToDisplayName[user.type]
-      : ExecutorAccountTypeToDisplayName[user.type]
+      ? getAccountTypeConfig('client', user.type)
+      : getAccountTypeConfig('executor', user.type)
 
   return (
     <div className="space-y-3">
       <div className="flex w-full items-center justify-between rounded-2xl bg-white p-2 shadow md:p-4">
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-3">
           <div className="flex items-center justify-center">
-            <div className="group relative w-full cursor-pointer" onClick={handlePhotoChange}>
+            <div className="group relative cursor-pointer" onClick={handlePhotoChange}>
               <input
                 type="file"
                 id="image"
@@ -93,26 +89,25 @@ const AccountSidebar: React.FC<AccountSidebarProps> = ({ accountType, user, navi
               <Image
                 src={previewUrl || getProxiedImageUrl(user.image) || noPhoto}
                 alt="profile image"
-                height={90}
-                width={90}
+                height={45}
+                width={45}
                 priority
-                className="aspect-square w-16 rounded-xl object-cover md:w-25 md:rounded-2xl"
+                className="aspect-square w-12 rounded-lg object-cover md:w-16 md:rounded-xl"
               />
-              <div className="bg-opacity-40 absolute inset-0 flex items-center justify-center rounded-2xl bg-black opacity-0 transition-opacity group-hover:opacity-100">
-                <TbPhotoUp className="text-3xl text-white" />
+              <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black/40 opacity-0 transition-opacity group-hover:opacity-100 md:rounded-xl">
+                <TbPhotoUp className="text-sm text-white md:text-base" />
               </div>
             </div>
           </div>
           <div className="space-y-1">
             <div className="flex gap-2">
-              <p className="text-xl font-bold">{user.name || 'Пользователь'}</p>
+              <p className="text-sm font-bold text-black md:text-base">
+                {user.name || 'Пользователь'}
+              </p>
             </div>
 
             <span
-              className={`${getAccountTypeStyles(
-                accountType,
-                user.type
-              )} inline-flex items-center justify-center rounded-lg px-3 py-1 text-sm`}
+              className={`${accountTypeClassName} inline-flex items-center justify-center rounded-md px-2 py-0.5 text-xs`}
             >
               {accountTypeLabel}
             </span>

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import type { BurgerProps } from './types'
 import Link from 'next/link'
-import Image from 'next/image'
+import { navItemClassName } from './navItemStyles'
 import { usePathname } from 'next/navigation'
 import Logout from './logout'
 
@@ -12,10 +12,7 @@ const Burger: React.FC<BurgerProps> = ({ navigation, accountType }) => {
   const [isOpen, setIsOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
 
-  const handleClose = () => setIsOpen(false)
-
   const pathname = usePathname()
-  const navigationItems = navigation
 
   useEffect(() => {
     setMounted(true)
@@ -36,31 +33,17 @@ const Burger: React.FC<BurgerProps> = ({ navigation, accountType }) => {
       >
         <div className="w-full rounded-2xl bg-white p-2 shadow md:w-64">
           <nav className="space-y-2">
-            {navigationItems.map(item => {
+            {navigation.map(item => {
               const isActive = pathname === item.href
+              const Icon = item.icon
               return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={`${
-                    isActive
-                      ? 'border-orange translate-x-2 rounded-l-lg border-r-4 bg-gray-100 text-black'
-                      : 'rounded-lg text-gray-600 hover:bg-gray-100'
-                  } flex items-center p-4 text-sm font-medium transition-all duration-200`}
-                  onClick={handleClose}
-                >
-                  <Image
-                    src={`/icons/${item.icon}.png`}
-                    alt={item.name}
-                    width={20}
-                    height={20}
-                    className="mr-2"
-                  />
+                <Link key={item.name} href={item.href} className={navItemClassName(isActive)}>
+                  <Icon className="mr-2 h-5 w-5" />
                   {item.name}
                 </Link>
               )
             })}
-            <Logout accountType={accountType} onClick={handleClose} />
+            <Logout accountType={accountType} />
           </nav>
         </div>
       </div>

@@ -17,6 +17,7 @@ import { uploadImage } from '@/lib/utils/image-upload'
 import { getProxiedImageUrl } from '@/lib/utils/image-proxy'
 import Burger from './burger'
 import type { AccountSidebarProps } from './types'
+import { navItemClassName } from './navItemStyles'
 
 type ProfileImageResponse = {
   user: { image: string; [key: string]: string }
@@ -127,23 +128,10 @@ const AccountSidebar: React.FC<AccountSidebarProps> = ({ accountType, user, navi
         <nav className="space-y-2">
           {navigation.map(item => {
             const isActive = pathname === item.href
+            const Icon = item.icon
             return (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={`${
-                  isActive
-                    ? 'border-orange translate-x-2 rounded-l-lg border-r-4 bg-gray-100 text-black'
-                    : 'rounded-lg text-gray-600 hover:bg-gray-100'
-                } flex items-center p-4 text-sm font-medium transition-all duration-200`}
-              >
-                <Image
-                  src={`/icons/${item.icon}.png`}
-                  alt={item.name}
-                  width={20}
-                  height={20}
-                  className="mr-2"
-                />
+              <Link key={item.name} href={item.href} className={navItemClassName(isActive)}>
+                <Icon className="mr-2 h-5 w-5" />
                 {item.name}
               </Link>
             )

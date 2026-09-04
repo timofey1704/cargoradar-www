@@ -8,6 +8,7 @@ import { navItemClassName } from './navItemStyles'
 import useClientStore from '@/store/clientStore'
 import useExecutorStore from '@/store/executorStore'
 import showToast from '../ui/toast'
+import { LogOut } from 'lucide-react'
 
 const LOGOUT_ENDPOINTS = {
   client: '/client/auth/logout',
@@ -70,7 +71,7 @@ const Logout: React.FC<LogoutProps> = ({ accountType, onClick }) => {
       )}
       disabled={isLoading}
     >
-      <Image src="/icons/logout.png" alt="Выйти" width={20} height={20} className="mr-2" />
+      <LogOut className="mr-2 h-5 w-5" />
       {isLoading ? 'Выход...' : 'Выйти'}
     </button>
   )

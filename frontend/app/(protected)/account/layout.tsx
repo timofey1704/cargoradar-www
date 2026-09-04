@@ -3,19 +3,14 @@
 import { Toaster } from 'react-hot-toast'
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { User, Package, MessageSquareReply, LifeBuoy, Banknote } from 'lucide-react'
 import { Providers } from '@/app/providers/providers'
 import ClientAuthProvider from '../../providers/client-auth-provider'
 import useClientStore from '@/store/clientStore'
 import AccountSidebar from '@/components/account/sidebar'
 import { Loader } from '@/components/ui/loader'
 import { Client } from '@/types'
-
-type NavItem = {
-  name: string
-  href: string
-  icon: string
-  visibleFor?: Client['type'][] // если не указано — видно всем
-}
+import { NavigationItem } from '@/components/account/types'
 
 export default function AccountLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
@@ -32,12 +27,12 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
     }
   }, [isAuthChecked, client, router])
 
-  const clientNavigation: NavItem[] = [
-    { name: 'Профиль', href: '/account', icon: 'profile' },
-    { name: 'Заказы', href: '/account/orders', icon: 'orders' },
-    { name: 'Отклики', href: '/account/distinctions', icon: 'distinctions' },
-    { name: 'Поддержка', href: '/account/support', icon: 'support' },
-    { name: 'Подписка', href: '/account/membership', icon: 'membership', visibleFor: ['legal'] },
+  const clientNavigation: NavigationItem[] = [
+    { name: 'Профиль', href: '/account', icon: User },
+    { name: 'Заказы', href: '/account/orders', icon: Package },
+    { name: 'Отклики', href: '/account/distinctions', icon: MessageSquareReply },
+    { name: 'Поддержка', href: '/account/support', icon: LifeBuoy },
+    { name: 'Подписка', href: '/account/membership', icon: Banknote, visibleFor: ['legal'] },
   ]
 
   function getClientNavigation(user: Client) {

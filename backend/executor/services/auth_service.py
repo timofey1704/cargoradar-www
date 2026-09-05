@@ -12,6 +12,8 @@ from core.security import (
 )
 from core.schemas.common_auth_credentials import CommonCredentialsFields
 from core.schemas.token import TokenResponse
+from core.repositories.membership_repository import MembershipRepository
+from core.repositories.subscription_repository import SubscriptionRepository
 
 from executor.models.enums.car_brands import CarBrands
 from executor.models.service import Service
@@ -36,6 +38,47 @@ async def _issue_tokens(executor_id: int, db: AsyncSession) -> TokenResponse:
 
     return TokenResponse(access_token=access_token, refresh_token=refresh_token)
 
+
+async def register_executor(data: ExecutorRegister, db: AsyncSession) -> TokenResponse:
+    logger.info("register_executor: email=%s phone_number=%s", data.email, data.phone_number)
+
+    repo = ExecutorRepository(db)
+
+    existing = await repo.get_by_phone_number(data.phone_number)
+    if existing:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Phone number already registered")
+
+    try:
+        hashed = hash_password(data.password)
+        executor = await repo.create(
+            type=data.type,
+            name=data.name,
+            email=data.email,
+            phone_number=data.phone_number,
+            hashed_password=hashed,
+            privacy_accepted=data.privacy_accepted,
+        )
+
+        await _create_profile(data, executor.id, db)
+        await db.flush()
+
+        membership_repo = MembershipRepository(db)
+        trial_plan = await membership_repo.get_trial_plan()
+        if trial_plan is None:
+            logger.error(
+                "Trial membership plan is not configured, executor will be registered without subscription"
+            )
+        else:
+            subscription_repo = SubscriptionRepository(db)
+            await subscription_repo.grant_trial_to_executor(executor_id=executor.id, membership_id=trial_plan.id)
+
+        await db.commit()
+        await db.refresh(executor)
+    except Exception:
+        await db.rollback()
+        raise
+
+    return await _issue_tokens(executor.id, db)
 
 async def _create_profile(data: ExecutorRegister, executor_id: int, db: AsyncSession) -> None:
     """Создаёт профиль, соответствующий типу аккаунта (схема требует ровно один).
@@ -73,41 +116,6 @@ async def _create_profile(data: ExecutorRegister, executor_id: int, db: AsyncSes
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         detail="Profile for account type is required",
     )
-
-
-async def register_executor(data: ExecutorRegister, db: AsyncSession) -> TokenResponse:
-    """
-    Регистрация: проверяем уникальность номера телефона, хэшируем пароль,
-    создаём аккаунт и профиль, возвращаем пару токенов сразу —
-    чтобы фронт не делал лишний запрос на login.
-    """
-    logger.info("register_executor: email=%s phone_number=%s",
-                data.email, data.phone_number)
-
-    repo = ExecutorRepository(db)
-
-    existing = await repo.get_by_phone_number(data.phone_number)
-    if existing:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Phone number already registered",
-        )
-
-    hashed = hash_password(data.password)
-    executor = await repo.create(
-        type=data.type,
-        name=data.name,
-        email=str(data.email),
-        phone_number=data.phone_number,
-        price_per_km=data.price_per_km,
-        hashed_password=hashed,
-        privacy_accepted=data.privacy_accepted
-    )
-
-    await _create_profile(data, executor.id, db)
-    await db.commit()
-
-    return await _issue_tokens(executor.id, db)
 
 
 async def login_executor(data: CommonCredentialsFields, db: AsyncSession) -> TokenResponse:

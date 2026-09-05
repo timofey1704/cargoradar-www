@@ -1,5 +1,5 @@
 import logging
-
+from datetime import datetime, timezone, timedelta
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -13,6 +13,8 @@ from core.security import (
 from core.schemas.common_auth_credentials import CommonCredentialsFields
 from core.schemas.token import TokenResponse
 from client.schemas.client_credentials import ClientRegister
+from core.repositories.membership_repository import MembershipRepository
+from core.repositories.subscription_repository import SubscriptionRepository
 
 from client.repositories.client import ClientRepository
 from client.repositories.refresh_token import RefreshTokenRepository
@@ -36,46 +38,58 @@ async def _issue_tokens(client_id: int, db: AsyncSession) -> TokenResponse:
 
 async def register_client(data: ClientRegister, db: AsyncSession) -> TokenResponse:
     """
-    Регистрация: проверяем уникальность номера телефона, хэшируем пароль,
-    создаём аккаунт и профиль, возвращаем пару токенов сразу —
+    Регистрирует нового клиента, создаёт запись в БД, хэширует пароль, создаём аккаунт и профиль, возвращаем пару токенов сразу —
     чтобы фронт не делал лишний запрос на login.
+    Если тип клиента — юридическое лицо, создаёт запись в таблице LegalClient.
     """
-    logger.info("register_client: email=%s phone_number=%s",
-                data.email, data.phone_number)
+    logger.info("register_client: email=%s phone_number=%s", data.email, data.phone_number)
 
     repo = ClientRepository(db)
 
     existing = await repo.get_by_phone_number(data.phone_number)
     if existing:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Phone number already registered",
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Phone number already registered")
+
+    try:
+        hashed = hash_password(data.password)
+        client = await repo.create(
+            type=data.type,
+            name=data.name,
+            email=str(data.email),
+            phone_number=data.phone_number,
+            hashed_password=hashed,
+            VIN_code=data.VIN_code,
+            privacy_accepted=data.privacy_accepted,
         )
 
-    hashed = hash_password(data.password)
-    client = await repo.create(
-        type=data.type,
-        name=data.name,
-        email=str(data.email),
-        phone_number=data.phone_number,
-        hashed_password=hashed,
-        VIN_code =data.VIN_code,
-        privacy_accepted=data.privacy_accepted
-        )
+        if data.type is ClientTypes.legal:
+            db.add(LegalClient(
+                client_id=client.id,
+                legal_name=data.legal_name,
+                unp=data.UNP,
+                address=data.address,
+            ))
+            await db.flush()
 
-    # Для юридического лица — профиль в отдельной таблице legal_clients.
-    # repo.create уже закоммитил клиента; LegalClient уйдёт в БД вместе с
-    # commit'ом в _issue_tokens.
-    if data.type is ClientTypes.legal:
-        db.add(LegalClient(
-            client_id=client.id,
-            legal_name=data.legal_name,
-            unp=data.UNP,
-            address=data.address,
-        ))
+            membership_repo = MembershipRepository(db)
+            trial_plan = await membership_repo.get_trial_plan()
+            if trial_plan is None:
+                # план не заведён — не блокируем регистрацию, но и не оставляем
+                # клиента в промежуточном состоянии молча - мониторинг?
+                logger.error(
+                    "Trial membership plan is not configured, client will be registered without subscription"
+                )
+            else:
+                subscription_repo = SubscriptionRepository(db)
+                await subscription_repo.grant_trial_to_client(client_id=client.id, membership_id=trial_plan.id)
+
+        await db.commit()
+        await db.refresh(client)
+    except Exception:
+        await db.rollback()
+        raise
 
     return await _issue_tokens(client.id, db)
-
 
 async def login_client(data: CommonCredentialsFields, db: AsyncSession) -> TokenResponse:
     """

@@ -14,6 +14,7 @@ from client.models.enums.client_types import ClientTypes
 if TYPE_CHECKING:
     from client.models.refresh_token import RefreshToken
     from client.models.legal_client import LegalClient
+    from core.models.membership import Subscription
 
 
 class Client(Base):
@@ -37,9 +38,11 @@ class Client(Base):
         SQLEnum(ClientTypes),
         nullable=False,
     )
+    
     legal_client : Mapped["LegalClient | None"] = relationship(back_populates="client")
     oauth_accounts: Mapped[list["OAuthAccount"]] = relationship(back_populates="client", cascade="all, delete-orphan")
     refresh_tokens: Mapped[list["RefreshToken"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    subscriptions: Mapped[list["Subscription"]] = relationship(back_populates="client", cascade="all, delete-orphan")
     
     def __repr__(self) -> str:
         return f"<User(id={self.id}, email={self.email})>"

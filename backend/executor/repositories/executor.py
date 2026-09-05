@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from executor.models.executor import Executor
 from executor.models.enums.executor_types import ExecutorTypes
 
+
 class ExecutorRepository:
     def __init__(self, db: AsyncSession) -> None:
         self.db = db
@@ -22,10 +23,8 @@ class ExecutorRepository:
         name: str,
         email: str,
         phone_number: str,
-        price_per_km: int | None,
         hashed_password: str | None,
-        privacy_accepted: bool = True
-       
+        privacy_accepted: bool = True,
     ) -> Executor:
         executor = Executor(
             email=email,
@@ -33,10 +32,8 @@ class ExecutorRepository:
             type=type,
             name=name,
             phone_number=phone_number,
-            price_per_km=price_per_km,
-            privacy_accepted=privacy_accepted
+            privacy_accepted=privacy_accepted,
         )
         self.db.add(executor)
-        await self.db.commit()
-        await self.db.refresh(executor)
+        await self.db.flush()
         return executor

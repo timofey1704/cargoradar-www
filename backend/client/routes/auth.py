@@ -7,11 +7,13 @@ from core.cookies import (
 from core.dependencies import CurrentClient, DbSession
 from core.schemas.common_auth_credentials import CommonCredentialsFields
 from core.schemas.token import RefreshRequest, TokenResponse
+from core.repositories.subscription_repository import SubscriptionRepository
 
 from client.models import Client
 from client.schemas.client_credentials import ClientRegister
 from client.schemas.client_read import ClientRead
 from client.schemas.client_update import ClientUpdate
+from client.schemas.client_read import SubscriptionRead
 
 from client.services import auth_service, client_service
 
@@ -57,9 +59,23 @@ async def logout(
 
 
 @router.get("/me", response_model=ClientRead)
-async def get_me(current: CurrentClient) -> Client:
-    """Данные текущего аккаунта исполнителя."""
-    return current
+async def get_me(current: CurrentClient, db: DbSession) -> ClientRead:
+    """Данные текущего аккаунта клиента."""
+    subscription_repo = SubscriptionRepository(db)
+    active_subscription = await subscription_repo.get_active_for_client(current.id)
+
+    return ClientRead(
+        id=current.id,
+        name=current.name,
+        email=current.email,
+        phone_number=current.phone_number,
+        type=current.type,
+        VIN_code=current.VIN_code,
+        image_url=current.image_url,
+        is_notifications_enabled=current.is_notifications_enabled,
+        is_active=current.is_active,
+        subscription=SubscriptionRead.model_validate(active_subscription) if active_subscription else None,
+    )
 
 
 @router.patch("/update-data", response_model=ClientRead)

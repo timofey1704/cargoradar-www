@@ -1,8 +1,10 @@
+from datetime import datetime
+
 from pydantic import BaseModel, ConfigDict, EmailStr
 
 from utils.phone_number_validator import BelarusPhoneNumber
 from client.models.enums.client_types import ClientTypes
-
+from core.schemas.membership_read import SubscriptionRead
 
 class ClientRead(BaseModel):
     """Публичные данные клиента, безопасные для отдачи на фронт"""
@@ -16,5 +18,6 @@ class ClientRead(BaseModel):
     image_url: str | None
     is_notifications_enabled: bool
     is_active: bool
+    subscription: SubscriptionRead | None
 
     model_config = ConfigDict(from_attributes=True)

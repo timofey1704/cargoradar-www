@@ -3,7 +3,7 @@
 import { Toaster } from 'react-hot-toast'
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { User, Package, MessageSquareReply, Headset, Banknote } from 'lucide-react'
+import { User, Package, MessageSquareReply, Headset, Banknote, CarFront } from 'lucide-react'
 import { Providers } from '@/app/providers/providers'
 import ClientAuthProvider from '../../providers/client-auth-provider'
 import useClientStore from '@/store/clientStore'
@@ -30,6 +30,7 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
   const clientNavigation: NavigationItem[] = [
     { name: 'Профиль', href: '/account', icon: User },
     { name: 'Заказы', href: '/account/orders', icon: Package },
+    { name: 'Гараж', href: '/account/garage', icon: CarFront },
     { name: 'Отклики', href: '/account/distinctions', icon: MessageSquareReply },
     { name: 'Поддержка', href: '/account/support', icon: Headset },
     { name: 'Подписка', href: '/account/membership', icon: Banknote, visibleFor: ['legal'] },

@@ -1,7 +1,10 @@
 from pydantic import BaseModel, ConfigDict, Field
-from executor.models.enums.car_brands import CarBrands
 
-class SupplierBase(BaseModel):
+from executor.models.enums.car_brands import CarBrands
+from executor.schemas.mixins import BrandsFromORMMixin
+
+
+class SupplierBase(BrandsFromORMMixin, BaseModel):
     """Общие поля поставщика запчастей."""
 
     legal_name: str = Field(min_length=1, max_length=255)

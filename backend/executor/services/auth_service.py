@@ -21,8 +21,8 @@ from executor.models.service import ServiceBrand
 from executor.models.supplier import Supplier
 from executor.models.supplier import SupplierBrand
 from executor.models.towtruck import TowTruck
-from executor.models.vehicles import Vehicle
 from executor.repositories.executor import ExecutorRepository
+from executor.repositories.vehicle import VehicleRepository
 from executor.repositories.refresh_token import RefreshTokenRepository
 from executor.schemas.executor_credentials import ExecutorRegister
 
@@ -92,8 +92,8 @@ async def _create_profile(data: ExecutorRegister, executor_id: int, db: AsyncSes
     Для поставщика запчастей (supplier) создаётся одна запись в таблице supplier, а для каждой марки из списка `brands` создаётся запись в supplier_brands.
     """
     if data.cars is not None:
-        for car in data.cars:
-            db.add(Vehicle(executor_id=executor_id, **car.model_dump()))
+        vehicle_repo = VehicleRepository(db)
+        await vehicle_repo.create_many(executor_id, data.cars)
         return
 
     if data.service is not None:

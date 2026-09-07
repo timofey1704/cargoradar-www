@@ -12,8 +12,8 @@ from executor.models import Executor
 from executor.schemas.executor_credentials import ExecutorRegister
 
 from executor.schemas.executor_read import ExecutorRead
-from executor.schemas.executor_update import ExecutorUpdate
-from executor.services import auth_service, executor_service
+from executor.services import auth_service
+from executor.services.executor_service import build_executor_read
 
 router = APIRouter(prefix="/auth", tags=["executor auth"])
 
@@ -73,24 +73,6 @@ async def logout(
 
 
 @router.get("/me", response_model=ExecutorRead, status_code=status.HTTP_200_OK)
-async def get_me(current: CurrentExecutor) -> Executor:
+async def get_me(current: CurrentExecutor, db: DbSession) -> ExecutorRead:
     """Данные текущего аккаунта исполнителя."""
-    return current
-
-
-@router.patch("/update-data", response_model=ExecutorRead, status_code=status.HTTP_200_OK)
-async def update_me(
-    data: ExecutorUpdate,
-    db: DbSession,
-    current: CurrentExecutor,
-) -> Executor:
-    """Обновляет профиль текущего исполнителя (передаются только изменяемые поля)."""
-    return await executor_service.update_account_data(
-        session=db,
-        executor_id=current.id,
-        name=data.name,
-        image_url=data.image_url,
-        email=str(data.email) if data.email is not None else None,
-        phone_number=data.phone_number,
-        is_notifications_enabled=data.is_notifications_enabled,
-    )
+    return await build_executor_read(current, db)

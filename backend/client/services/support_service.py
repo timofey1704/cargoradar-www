@@ -18,12 +18,19 @@ async def create_request(
 ) -> SupportRequest:
     """Создать заявку в службу поддержки от клиента."""
     repo = ClientSupportRequestRepository(session)
-    return await repo.create(
+    request = await repo.create(
         owner_id=client_id,
         request_type=request_type,
         title=title,
         description=description,
     )
+
+    # репозиторий только добавляет объект в сессию (flush), фиксируем транзакцию
+    # в сервисе — как в client_service.update_account_data, иначе при закрытии
+    # сессии всё откатится и заявка не сохранится.
+    await session.commit()
+    await session.refresh(request)
+    return request
 
 
 async def get_requests(

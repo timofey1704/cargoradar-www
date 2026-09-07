@@ -8,8 +8,10 @@ class SupportRequestRead(BaseModel):
     id: int
     title: str
     description: str
+    request_type: SupportRequestTypes
     status: RequestStatuses
     created_at: datetime
+    updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
     

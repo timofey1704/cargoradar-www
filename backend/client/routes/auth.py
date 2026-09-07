@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, Response, status
+from fastapi import APIRouter, HTTPException, Request, Response, status
 
 from core.cookies import (
     clear_client_auth_cookies,
@@ -37,9 +37,25 @@ async def login(data: CommonCredentialsFields, db: DbSession, response: Response
 
 
 @router.post("/refresh", response_model=TokenResponse)
-async def refresh(data: RefreshRequest, db: DbSession, response: Response) -> TokenResponse:
-    """Ротация refresh-токена: выдаёт новую пару access + refresh."""
-    result = await auth_service.refresh_tokens(data.refresh_token, db)
+async def refresh(
+    request: Request,
+    db: DbSession,
+    response: Response,
+    data: RefreshRequest | None = None,
+) -> TokenResponse:
+    """Ротация refresh-токена: выдаёт новую пару access + refresh.
+
+    Токен принимается из тела (внешние API-клиенты — прежний контракт) либо
+    из httpOnly-куки client_refresh_token — основной путь с фронта, где JS
+    не видит cookie, поэтому обёртка apiRequest шлёт POST /auth/refresh без тела.
+    """
+    refresh_token = data.refresh_token if data else request.cookies.get("client_refresh_token")
+    if not refresh_token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="No refresh token",
+        )
+    result = await auth_service.refresh_tokens(refresh_token, db)
     set_client_auth_cookies(response, result.access_token, result.refresh_token)
     return result
 

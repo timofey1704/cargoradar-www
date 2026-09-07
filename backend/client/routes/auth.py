@@ -73,5 +73,5 @@ async def logout(
 
 @router.get("/me", response_model=ClientRead, status_code=status.HTTP_200_OK)
 async def get_me(current: CurrentClient, db: DbSession) -> ClientRead:
-    """Данные текущего аккаунта клиента (включая юрданные для type=legal)."""
+    """Данные текущего аккаунта клиента (включая юрданные для type=legal)"""
     return await build_client_read(current, db)

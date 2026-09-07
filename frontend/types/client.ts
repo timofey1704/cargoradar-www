@@ -6,9 +6,14 @@ interface BaseClient {
   phone_number: string
   image?: string
   VIN_code: string | null
-  membership?: 'free' | 'premium'
+  membership?: string
   is_notifications_enabled: boolean
   is_active: boolean
+  subscription?: {
+    membership: {
+      name: string
+    }
+  } | null
 }
 
 interface LegalFields {

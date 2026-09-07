@@ -7,6 +7,8 @@ export const profileSchema = z.object({
 
   email: z.string().min(1, 'Введите email').email('Введите корректный email'),
 
+  image: z.string().optional(),
+
   vinCode: z.string().max(17, 'VIN-код не должен превышать 17 символов').optional(),
 
   isNotificationsEnabled: z.boolean(),

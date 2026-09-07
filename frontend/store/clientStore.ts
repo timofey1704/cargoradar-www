@@ -12,11 +12,26 @@ interface ClientStore {
   isIndividual: () => boolean
 }
 
+/**
+ * Приводит объект с API к форме, которую ждёт UI.
+ * Бэкенд отдаёт вложенную подписку subscription.membership.name,
+ * а компоненты (например, сайдбар) читают плоское поле membership.
+ */
+function normalizeClient(client: Client): Client {
+  const membershipName = client.subscription?.membership?.name
+
+  // типы web: union-поле membership?='free'|'premium' расширяем до строки — см. типы ниже
+  return {
+    ...client,
+    membership: membershipName || client.membership,
+  }
+}
+
 const useClientStore = create<ClientStore>((set, get) => ({
   client: null,
   isAuthChecked: false,
 
-  setClient: client => set({ client }),
+  setClient: client => set({ client: client ? normalizeClient(client) : null }),
 
   setAuthChecked: value => set({ isAuthChecked: value }),
 

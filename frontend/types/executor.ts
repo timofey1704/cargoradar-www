@@ -9,7 +9,12 @@ export interface Executor {
   price_per_km: number | null
   is_notifications_enabled: boolean
   is_active: boolean
-  membership: 'free' | 'premium'
+  membership: string
+  subscription?: {
+    membership: {
+      name: string
+    }
+  } | null
   car?: Car
   supplier?: Supplier
   service?: Service

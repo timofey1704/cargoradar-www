@@ -1,7 +1,6 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import Image from 'next/image'
 import { useState } from 'react'
 import clsx from 'clsx'
 import { navItemClassName } from './navItemStyles'

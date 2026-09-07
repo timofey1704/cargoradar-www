@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { FormProvider } from 'react-hook-form'
 import { Bell, Camera, User } from 'lucide-react'
 
@@ -25,6 +26,7 @@ const ProfilePage = () => {
     defaultValues: {
       name: client?.name || '',
       phoneNumber: client?.phone_number || '',
+      image: client?.image || '',
       email: client?.email || '',
       vinCode: client?.VIN_code || '',
       isNotificationsEnabled: client?.is_notifications_enabled ?? false,
@@ -46,7 +48,6 @@ const ProfilePage = () => {
 
   return (
     <div className="space-y-8 pb-8">
-      {/* Header */}
       <div>
         <h1 className="text-2xl font-semibold text-gray-900">Редактирование профиля</h1>
 
@@ -57,7 +58,6 @@ const ProfilePage = () => {
 
       <FormProvider {...form}>
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Personal data */}
           <section className="overflow-hidden rounded-2xl border border-gray-200 bg-white">
             <div className="border-b border-gray-100 px-6 py-5">
               <h2 className="text-lg font-semibold text-gray-900">Личные данные</h2>
@@ -66,10 +66,19 @@ const ProfilePage = () => {
             </div>
 
             <div className="space-y-6 p-6">
-              {/* Avatar */}
               <div className="flex items-center gap-5">
                 <div className="relative flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-100">
-                  <User className="size-8 text-gray-400" />
+                  {client?.image ? (
+                    <Image
+                      src={client.image}
+                      alt="Фото профиля"
+                      fill
+                      sizes="80px"
+                      className="object-cover"
+                    />
+                  ) : (
+                    <User className="size-8 text-gray-400" />
+                  )}
 
                   <button
                     type="button"
@@ -93,7 +102,6 @@ const ProfilePage = () => {
                 </div>
               </div>
 
-              {/* Fields */}
               <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                 <FormInput<ProfileFormInput> name="name" label="Имя" placeholder="Введите имя" />
 
@@ -119,7 +127,6 @@ const ProfilePage = () => {
             </div>
           </section>
 
-          {/* Notifications */}
           <section className="overflow-hidden rounded-2xl border border-gray-200 bg-white">
             <div className="border-b border-gray-100 px-6 py-5">
               <h2 className="text-lg font-semibold text-gray-900">Настройки</h2>
@@ -152,7 +159,6 @@ const ProfilePage = () => {
             </div>
           </section>
 
-          {/* Legal client */}
           {isLegalClient && (
             <section className="overflow-hidden rounded-2xl border border-gray-200 bg-white">
               <div className="border-b border-gray-100 px-6 py-5">
@@ -181,7 +187,6 @@ const ProfilePage = () => {
             </section>
           )}
 
-          {/* Actions */}
           <div className="flex justify-end">
             <Button
               type="submit"

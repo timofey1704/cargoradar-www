@@ -46,8 +46,8 @@ const AccountSidebar: React.FC<AccountSidebarProps> = ({ accountType, user, navi
         // эндпоинт для фоток
         const endpoint =
           accountType === 'client'
-            ? `${apiUrl}/account/profile/contacts/`
-            : `${apiUrl}/executor/profile/contacts/`
+            ? `${apiUrl}/account/profile/update-photo/`
+            : `${apiUrl}/executor/profile/update-photo/`
 
         const response = await uploadImage<ProfileImageResponse>(file, endpoint)
 
@@ -72,6 +72,17 @@ const AccountSidebar: React.FC<AccountSidebarProps> = ({ accountType, user, navi
       ? getAccountTypeConfig('client', user.type)
       : getAccountTypeConfig('executor', user.type)
 
+  // стили бейджа подписки: premium — золотой, free — нейтральный синий,
+  // без подписки — приглушённый серый
+  const memberValue = user.membership?.toLowerCase()
+  const isPremium = memberValue === 'premium'
+
+  const membershipClassName = isPremium
+    ? 'bg-amber-100 text-amber-700'
+    : user.membership
+      ? 'bg-sky-100 text-sky-700'
+      : 'bg-gray-100 text-gray-500'
+
   return (
     <div className="space-y-3">
       <div className="flex w-full items-center justify-between rounded-2xl bg-white p-2 shadow md:p-4">
@@ -89,10 +100,10 @@ const AccountSidebar: React.FC<AccountSidebarProps> = ({ accountType, user, navi
               <Image
                 src={previewUrl || getProxiedImageUrl(user.image) || noPhoto}
                 alt="profile image"
-                height={45}
-                width={45}
+                height={90}
+                width={90}
                 priority
-                className="aspect-square w-12 rounded-lg object-cover md:w-16 md:rounded-xl"
+                className="aspect-square w-16 rounded-xl object-cover md:w-25 md:rounded-2xl"
               />
               <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black/40 opacity-0 transition-opacity group-hover:opacity-100 md:rounded-xl">
                 <TbPhotoUp className="text-sm text-white md:text-base" />
@@ -110,6 +121,11 @@ const AccountSidebar: React.FC<AccountSidebarProps> = ({ accountType, user, navi
               className={`${accountTypeClassName} inline-flex items-center justify-center rounded-md px-2 py-0.5 text-xs`}
             >
               {accountTypeLabel}
+            </span>
+            <span
+              className={`inline-flex items-center justify-center rounded-md px-2 py-0.5 text-xs ${membershipClassName}`}
+            >
+              {user.membership || 'Нет подписки'}
             </span>
           </div>
         </div>

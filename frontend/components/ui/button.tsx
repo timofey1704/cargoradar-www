@@ -52,7 +52,6 @@ export const Button: React.FC<ButtonProps> = ({
   loadingText = 'Создаём аккаунт...',
   defaultText = 'Зарегистрироваться',
   showArrow = true,
-  icon,
   variant = 'orange',
   size = 'lg',
   fullWidth = true,

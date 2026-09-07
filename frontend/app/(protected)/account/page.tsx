@@ -2,6 +2,8 @@
 
 import Image from 'next/image'
 import { FormProvider } from 'react-hook-form'
+import { useCallback, useRef, useState } from 'react'
+import type { ChangeEvent } from 'react'
 import { Bell, Camera, User } from 'lucide-react'
 
 import { useAppForm } from '@/hooks/use-app-form'
@@ -10,16 +12,69 @@ import { Button } from '@/components/ui/button'
 import useClientStore from '@/store/clientStore'
 import { useChangePersonalData } from '@/hooks/use-account-actions'
 import { changeAccountData } from '@/lib/clientAccount/change-account-data'
+import { uploadImage } from '@/lib/utils/image-upload'
+import { getProxiedImageUrl } from '@/lib/utils/image-proxy'
 import showToast from '@/components/ui/toast'
 import type { Client } from '@/types'
 
 import { profileSchema, type ProfileFormInput } from '@/schemas/account/profile/profileSchema'
+
+type ProfileImageResponse = {
+  user: { image: string; [key: string]: string }
+  message: string
+}
 
 const ProfilePage = () => {
   const { client, setClient } = useClientStore()
   const isLegalClient = client?.type === 'legal'
 
   const { mutateAsync: saveChanges, isPending } = useChangePersonalData(changeAccountData)
+
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [previewUrl, setPreviewUrl] = useState<string>(getProxiedImageUrl(client?.image) || '')
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL
+
+  const handlePhotoChange = () => fileInputRef.current?.click()
+
+  const handleFileChange = useCallback(
+    async (e: ChangeEvent<HTMLInputElement>) => {
+      const files = e.target.files
+      if (!files || files.length === 0) return
+
+      try {
+        const file = files[0]
+        if (!file.type.startsWith('image/')) {
+          showToast({ type: 'error', message: 'Пожалуйста, выберите изображение' })
+          return
+        }
+
+        const preview = URL.createObjectURL(file)
+        setPreviewUrl(preview)
+
+        // эндпоинт для фоток
+        const response = await uploadImage<ProfileImageResponse>(
+          file,
+          `${apiUrl}/account/profile/update-photo/`
+        )
+
+        if (response.user?.image) {
+          setPreviewUrl(getProxiedImageUrl(response.user.image))
+
+          // обновляем стор, чтобы и сайдбар, и профиль показали новую фотку
+          if (client) {
+            setClient({ ...client, image: response.user.image })
+          }
+        }
+
+        showToast({ type: 'success', message: 'Фотография успешно обновлена' })
+        e.target.value = ''
+      } catch (error) {
+        showToast({ type: 'error', message: 'Ошибка при загрузке фотографии' })
+        console.error('Error handling file:', error)
+      }
+    },
+    [apiUrl, client]
+  )
 
   const { form } = useAppForm({
     schema: profileSchema,
@@ -67,24 +122,34 @@ const ProfilePage = () => {
 
             <div className="space-y-6 p-6">
               <div className="flex items-center gap-5">
-                <div className="relative flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-100">
-                  {client?.image ? (
+                <input
+                  type="file"
+                  id="image"
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  className="hidden"
+                  accept="image/*"
+                />
+                <div className="relative flex size-20 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-full bg-gray-100">
+                  {previewUrl || client?.image ? (
                     <Image
-                      src={client.image}
+                      src={previewUrl || getProxiedImageUrl(client?.image)}
                       alt="Фото профиля"
                       fill
                       sizes="80px"
-                      className="object-cover"
+                      className="object-cover hover:cursor-pointer"
                     />
                   ) : (
-                    <User className="size-8 text-gray-400" />
+                    <User className="size-8 text-gray-400 hover:cursor-pointer" />
                   )}
 
                   <button
                     type="button"
-                    className="absolute inset-0 flex items-center justify-center bg-black/0 text-white opacity-0 transition-all hover:bg-black/40 hover:opacity-100"
+                    onClick={handlePhotoChange}
+                    aria-label="Изменить фотографию"
+                    className="absolute inset-0 flex cursor-pointer items-center justify-center bg-black/0 text-white opacity-0 transition-all hover:bg-black/40 hover:opacity-100"
                   >
-                    <Camera className="size-5" />
+                    <Camera className="size-5 cursor-pointer" />
                   </button>
                 </div>
 
@@ -95,7 +160,8 @@ const ProfilePage = () => {
 
                   <button
                     type="button"
-                    className="mt-2 text-sm font-medium text-orange-500 transition-colors hover:text-orange-600"
+                    onClick={handlePhotoChange}
+                    className="mt-2 cursor-pointer text-sm font-medium text-orange-500 transition-colors hover:text-orange-600"
                   >
                     Изменить фото
                   </button>

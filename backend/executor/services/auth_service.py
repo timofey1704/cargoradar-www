@@ -17,7 +17,9 @@ from core.repositories.subscription_repository import SubscriptionRepository
 
 from executor.models.enums.car_brands import CarBrands
 from executor.models.service import Service
+from executor.models.service import ServiceBrand
 from executor.models.supplier import Supplier
+from executor.models.supplier import SupplierBrand
 from executor.models.towtruck import TowTruck
 from executor.models.vehicles import Vehicle
 from executor.repositories.executor import ExecutorRepository
@@ -85,6 +87,9 @@ async def _create_profile(data: ExecutorRegister, executor_id: int, db: AsyncSes
 
     Для перевозчика (carrier) из списка `cars` создаётся по строке в таблице
     vehicles — один исполнитель может иметь несколько автомобилей.
+    
+    Для СТО (service) создаётся одна запись в таблице service, а для каждой марки из списка `brands` создаётся запись в service_brands.
+    Для поставщика запчастей (supplier) создаётся одна запись в таблице supplier, а для каждой марки из списка `brands` создаётся запись в supplier_brands.
     """
     if data.cars is not None:
         for car in data.cars:
@@ -92,20 +97,23 @@ async def _create_profile(data: ExecutorRegister, executor_id: int, db: AsyncSes
         return
 
     if data.service is not None:
-        # В текущей схеме колонка brands — одиночный enum, а не массив,
-        # поэтому сохраняем первую марку из списка выбранных.
-        brands = data.service.brands
-        db.add(
-            Service(
-                executor_id=executor_id,
-                **data.service.model_dump(exclude={"brands"}),
-                brands=brands[0] if brands else CarBrands.all,
-            )
+        brands = data.service.brands or [CarBrands.all]
+        service = Service(
+            executor_id=executor_id,
+            **data.service.model_dump(exclude={"brands"}),
         )
+        service.brands = [ServiceBrand(brand=b) for b in brands]
+        db.add(service)
         return
 
     if data.supplier is not None:
-        db.add(Supplier(executor_id=executor_id, **data.supplier.model_dump()))
+        brands = data.supplier.brands or [CarBrands.all]
+        supplier = Supplier(
+            executor_id=executor_id,
+            **data.supplier.model_dump(exclude={"brands"}),
+        )
+        supplier.brands = [SupplierBrand(brand=b) for b in brands]
+        db.add(supplier)
         return
 
     if data.towtruck is not None:

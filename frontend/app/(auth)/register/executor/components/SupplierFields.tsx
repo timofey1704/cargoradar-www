@@ -1,5 +1,7 @@
 import { FormInput } from '@/components/ui/form-input'
+import { FormMultiSelect } from '@/components/ui/form-multi-select'
 import type { RegisterFormInput } from '@/schemas/auth/register/executorSchema'
+import { BRAND_OPTIONS } from '@/app/(auth)/register/executor/utils/carBrandOptions'
 
 const SupplierFields = () => {
   return (
@@ -22,6 +24,12 @@ const SupplierFields = () => {
           name="pickup_point"
           label="Точка выдачи"
           placeholder="г. Минск, ул. ..."
+        />
+        <FormMultiSelect<RegisterFormInput>
+          name="brands"
+          label="Марки автомобилей"
+          placeholder="Выберите марки"
+          options={BRAND_OPTIONS}
         />
       </div>
     </div>

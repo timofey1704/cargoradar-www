@@ -1,5 +1,5 @@
 from pydantic import BaseModel, ConfigDict, Field
-
+from executor.models.enums.car_brands import CarBrands
 
 class SupplierBase(BaseModel):
     """Общие поля поставщика запчастей."""
@@ -7,6 +7,10 @@ class SupplierBase(BaseModel):
     legal_name: str = Field(min_length=1, max_length=255)
     unp: str = Field(min_length=1, max_length=50)
     address: str = Field(min_length=1, max_length=255)
+    brands: list[CarBrands] = Field(
+        default_factory=lambda: [CarBrands.all],
+        description="Марки автомобилей, с которыми работает поставщик",
+    )
 
 
 class SupplierCreate(SupplierBase):

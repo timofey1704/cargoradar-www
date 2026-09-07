@@ -21,18 +21,22 @@ class Service(Base):
     )
 
     legal_name: Mapped[str] = mapped_column(String(255), nullable=False)
-    unp: Mapped[str] = mapped_column(
-        String(50),
-        nullable=False,
-        unique=True,
-    )
+    unp: Mapped[str] = mapped_column(String(50), nullable=False, unique=True)
     address: Mapped[str] = mapped_column(String(255), nullable=False)
-    brands: Mapped[list[CarBrands]] = mapped_column(
-        SQLEnum(CarBrands),
-        nullable=False, 
-        default=[CarBrands.all]
-    )
 
-    executor: Mapped["Executor"] = relationship(
-        back_populates="service"
+    brands: Mapped[list["ServiceBrand"]] = relationship(
+        back_populates="service",
+        cascade="all, delete-orphan",
     )
+    executor: Mapped["Executor"] = relationship(back_populates="service")
+    
+class ServiceBrand(Base):
+    __tablename__ = "service_brands"
+
+    service_id: Mapped[int] = mapped_column(
+        ForeignKey("services.executor_id"),
+        primary_key=True,
+    )
+    brand: Mapped[CarBrands] = mapped_column(SQLEnum(CarBrands), primary_key=True)
+
+    service: Mapped["Service"] = relationship(back_populates="brands")

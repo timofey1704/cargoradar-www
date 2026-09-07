@@ -1,12 +1,7 @@
 import { FormInput } from '@/components/ui/form-input'
 import { FormMultiSelect } from '@/components/ui/form-multi-select'
-import { CAR_BRAND_NAMES } from '@/consts/carBrands'
 import type { RegisterFormInput } from '@/schemas/auth/register/executorSchema'
-
-export const SERVICE_BRAND_OPTIONS = Object.entries(CAR_BRAND_NAMES).map(([value, label]) => ({
-  value,
-  label,
-}))
+import { BRAND_OPTIONS } from '../utils/carBrandOptions'
 
 const ServiceFields = () => {
   return (
@@ -35,7 +30,7 @@ const ServiceFields = () => {
           name="brands"
           label="Марки автомобилей"
           placeholder="Выберите марки"
-          options={SERVICE_BRAND_OPTIONS}
+          options={BRAND_OPTIONS}
         />
       </div>
     </div>

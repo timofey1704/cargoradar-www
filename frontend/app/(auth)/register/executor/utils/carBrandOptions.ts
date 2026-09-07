@@ -7,3 +7,8 @@ export const carBrandOptions = Object.entries(CAR_BRAND_NAMES)
     value,
     label,
   }))
+
+export const BRAND_OPTIONS = Object.entries(CAR_BRAND_NAMES).map(([value, label]) => ({
+  value,
+  label,
+}))

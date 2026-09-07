@@ -53,7 +53,7 @@ export default function RegisterPage() {
       })
     }
 
-    if (accountType === 'service') {
+    if (accountType === 'service' || accountType === 'supplier') {
       const currentBrands = form.getValues('brands')
 
       if (!Array.isArray(currentBrands) || currentBrands.length === 0) {

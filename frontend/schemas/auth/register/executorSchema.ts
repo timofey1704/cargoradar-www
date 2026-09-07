@@ -59,6 +59,17 @@ const supplierSchema = z.object({
     .max(9, 'УНП должен содержать 9 символов'),
 
   pickup_point: z.string().min(1, 'Введите точку выдачи'),
+
+  brands: z
+    .array(z.string())
+    .min(1, 'Выберите хотя бы одну марку автомобиля')
+    .refine(
+      value =>
+        (value.length > 0 && !value.includes('all')) || (value.includes('all') && value.length > 0),
+      {
+        message: 'Выберите хотя бы одну марку автомобиля',
+      }
+    ),
 })
 
 const serviceSchema = z.object({

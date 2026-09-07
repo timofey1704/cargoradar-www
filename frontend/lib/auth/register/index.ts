@@ -41,10 +41,13 @@ function normalizeRegisterPayload(values: RegisterValues): Record<string, unknow
       profile.address = normalized.service_address
     }
 
-    // марки для СТО: «все марки» (all) — валидное значение само по себе.
+    // марки для СТО/поставщика: «все марки» (all) — валидное значение само по себе.
     // all убираем только если выбраны конкретные марки; если конкретных марок
     // нет (в т.ч. выбрано только all или ничего) — отправляем ['all'].
-    if (normalized.type === 'service' && Array.isArray(normalized.brands)) {
+    if (
+      (normalized.type === 'supplier' || normalized.type === 'service') &&
+      Array.isArray(normalized.brands)
+    ) {
       const brands = normalized.brands.filter((brand): brand is string => typeof brand === 'string')
       const hasSpecific = brands.some(brand => brand !== 'all')
       profile.brands = hasSpecific ? brands.filter(brand => brand !== 'all') : ['all']

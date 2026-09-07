@@ -14,6 +14,7 @@ from core.models import *  # noqa: F401
 
 from executor.routes.auth import router as executor_auth_router
 from client.routes.auth import router as client_auth_router
+from client.routes.profile import router as client_profile_router
 from client.routes.support import router as client_support_router
 
 logging.basicConfig(
@@ -105,6 +106,7 @@ app.add_middleware(
 
 app.include_router(executor_auth_router, prefix="/api/executor") # авторизация исполнителей: /api/executor/auth/*
 app.include_router(client_auth_router, prefix="/api/client") # авторизация клиентов: /api/client/auth/*
+app.include_router(client_profile_router, prefix="/api/client") # профиль клиентов: /api/client/profile/*
 app.include_router(client_support_router, prefix="/api/client") # саппорт клиентов: /api/client/account/support*
 
 # отдаём загруженный медиаконтент по /uploads/...

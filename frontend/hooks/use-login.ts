@@ -1,5 +1,3 @@
-'use client'
-
 import { useMutation } from '@tanstack/react-query'
 import showToast from '@/components/ui/toast'
 import type { LoginFormOutput } from '@/schemas/auth/login/loginSchema'

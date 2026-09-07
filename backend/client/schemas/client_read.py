@@ -20,4 +20,9 @@ class ClientRead(BaseModel):
     is_active: bool
     subscription: SubscriptionRead | None
 
+    # только для клиентов type=legal
+    legal_name: str | None = None
+    unp: str | None = None
+    address: str | None = None
+
     model_config = ConfigDict(from_attributes=True)

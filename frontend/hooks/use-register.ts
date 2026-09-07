@@ -1,5 +1,3 @@
-'use client'
-
 import { useMutation } from '@tanstack/react-query'
 import showToast from '@/components/ui/toast'
 import type { RegisterFormOutput as ClientRegisterFormOutput } from '@/schemas/auth/register/clientSchema'

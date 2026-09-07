@@ -1,5 +1,4 @@
 import { create } from 'zustand'
-
 import type { Client } from '@/types'
 
 interface ClientStore {
@@ -9,9 +8,11 @@ interface ClientStore {
   setClient: (client: Client | null) => void
   setAuthChecked: (value: boolean) => void
   logout: () => void
+  isLegal: () => boolean
+  isIndividual: () => boolean
 }
 
-const useClientStore = create<ClientStore>(set => ({
+const useClientStore = create<ClientStore>((set, get) => ({
   client: null,
   isAuthChecked: false,
 
@@ -19,7 +20,15 @@ const useClientStore = create<ClientStore>(set => ({
 
   setAuthChecked: value => set({ isAuthChecked: value }),
 
-  logout: () => set({ client: null }),
+  logout: () =>
+    set({
+      client: null,
+      isAuthChecked: false,
+    }),
+
+  // хелперы для удобной проверки типа
+  isLegal: () => get().client?.type === 'legal',
+  isIndividual: () => get().client?.type === 'individual',
 }))
 
 export default useClientStore

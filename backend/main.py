@@ -16,6 +16,7 @@ from executor.routes.auth import router as executor_auth_router
 from client.routes.auth import router as client_auth_router
 from client.routes.profile import router as client_profile_router
 from client.routes.support import router as client_support_router
+from client.routes.membership import router as client_membership_router
 
 logging.basicConfig(
     level=logging.INFO,
@@ -108,6 +109,7 @@ app.include_router(executor_auth_router, prefix="/api/executor") # автори�
 app.include_router(client_auth_router, prefix="/api/client") # авторизация клиентов: /api/client/auth/*
 app.include_router(client_profile_router, prefix="/api/client") # профиль клиентов: /api/client/profile/*
 app.include_router(client_support_router, prefix="/api/client") # саппорт клиентов: /api/client/account/support*
+app.include_router(client_membership_router, prefix="/api/client")  # тарифы и подписка клиента: /api/client/membership/*
 
 # отдаём загруженный медиаконтент по /uploads/...
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")

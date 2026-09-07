@@ -4,7 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from core.models.membership import Subscription, SubscriptionSource, SubscriptionStatus
+from core.models.membership import Membership, Subscription, SubscriptionSource, SubscriptionStatus
 
 
 class SubscriptionRepository:
@@ -18,7 +18,9 @@ class SubscriptionRepository:
     async def get_active_for_client(self, client_id: int) -> Subscription | None:
         result = await self.db.execute(
             select(Subscription)
-            .options(selectinload(Subscription.membership))
+            .options(
+                selectinload(Subscription.membership).selectinload(Membership.features)
+            )
             .where(
                 Subscription.client_id == client_id,
                 Subscription.status == SubscriptionStatus.ACTIVE,
@@ -28,13 +30,15 @@ class SubscriptionRepository:
 
     async def get_active_for_executor(self, executor_id: int) -> Subscription | None:
         result = await self.db.execute(
-                    select(Subscription)
-                    .options(selectinload(Subscription.membership))
-                    .where(
-                        Subscription.executor_id == executor_id,
-                        Subscription.status == SubscriptionStatus.ACTIVE,
-                    )
-                )
+            select(Subscription)
+            .options(
+                selectinload(Subscription.membership).selectinload(Membership.features)
+            )
+            .where(
+                Subscription.executor_id == executor_id,
+                Subscription.status == SubscriptionStatus.ACTIVE,
+            )
+        )
         return result.scalar_one_or_none()
 
     async def grant_trial_to_client(self, client_id: int, membership_id: int, days: int = 30) -> Subscription:

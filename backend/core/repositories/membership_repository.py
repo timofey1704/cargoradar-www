@@ -23,6 +23,19 @@ class MembershipRepository:
         )
         return list(result.scalars().all())
 
+    async def get_available_with_features(self) -> list[Membership]:
+        """Все доступные к покупке планы (триал исключён из каталога) с фичами, по возрастанию цены."""
+        result = await self.db.execute(
+            select(Membership)
+            .options(selectinload(Membership.features))
+            .where(
+                Membership.is_available.is_(True),
+                Membership.is_trial.is_(False),
+            )
+            .order_by(Membership.price)
+        )
+        return list(result.scalars().all())
+
     async def get_with_features(self, membership_id: int) -> Membership | None:
         result = await self.db.execute(
             select(Membership)

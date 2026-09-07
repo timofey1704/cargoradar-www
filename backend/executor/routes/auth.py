@@ -26,7 +26,7 @@ async def register(data: ExecutorRegister, db: DbSession, response: Response) ->
     return result
 
 
-@router.post("/login", response_model=TokenResponse)
+@router.post("/login", response_model=TokenResponse, status_code=status.HTTP_200_OK)
 async def login(data: CommonCredentialsFields, db: DbSession, response: Response) -> TokenResponse:
     """Вход по телефону и паролю."""
     result = await auth_service.login_executor(data, db)
@@ -34,7 +34,7 @@ async def login(data: CommonCredentialsFields, db: DbSession, response: Response
     return result
 
 
-@router.post("/refresh", response_model=TokenResponse)
+@router.post("/refresh", response_model=TokenResponse, status_code=status.HTTP_200_OK)
 async def refresh(data: RefreshRequest, db: DbSession, response: Response) -> TokenResponse:
     """Ротация refresh-токена: выдаёт новую пару access + refresh."""
     result = await auth_service.refresh_tokens(data.refresh_token, db)
@@ -56,13 +56,13 @@ async def logout(
     clear_executor_auth_cookies(response)
 
 
-@router.get("/me", response_model=ExecutorRead)
+@router.get("/me", response_model=ExecutorRead, status_code=status.HTTP_200_OK)
 async def get_me(current: CurrentExecutor) -> Executor:
     """Данные текущего аккаунта исполнителя."""
     return current
 
 
-@router.patch("/update-data", response_model=ExecutorRead)
+@router.patch("/update-data", response_model=ExecutorRead, status_code=status.HTTP_200_OK)
 async def update_me(
     data: ExecutorUpdate,
     db: DbSession,

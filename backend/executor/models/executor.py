@@ -18,6 +18,7 @@ if TYPE_CHECKING:
     from executor.models.towtruck import TowTruck
     from executor.models.vehicles import Vehicle
     from core.models.membership import Subscription
+    from core.models.support_request import SupportRequest
 
 class Executor(Base):
     __tablename__ = "executors"
@@ -45,6 +46,7 @@ class Executor(Base):
     supplier: Mapped["Supplier | None"] = relationship(back_populates="executor")
     towtruck: Mapped["TowTruck | None"] = relationship(back_populates="executor")
     subscriptions: Mapped[list["Subscription"]] = relationship(back_populates="executor", cascade="all, delete-orphan")
+    support_requests: Mapped[list["SupportRequest"]] = relationship(back_populates="executor", cascade="all, delete-orphan")
     
     is_notifications_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)

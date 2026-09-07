@@ -9,6 +9,7 @@ from core.config import settings
 from core.database import Base
 from executor.models import *  # noqa: F401
 from client.models import *  # noqa: F401
+from admin.models import *  # noqa: F401
 
 config = context.config
 config.set_main_option("sqlalchemy.url", settings.database_url)

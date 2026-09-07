@@ -58,7 +58,7 @@ async def logout(
     clear_client_auth_cookies(response)
 
 
-@router.get("/me", response_model=ClientRead)
+@router.get("/me", response_model=ClientRead, status_code=status.HTTP_200_OK)
 async def get_me(current: CurrentClient, db: DbSession) -> ClientRead:
     """Данные текущего аккаунта клиента."""
     subscription_repo = SubscriptionRepository(db)
@@ -78,7 +78,7 @@ async def get_me(current: CurrentClient, db: DbSession) -> ClientRead:
     )
 
 
-@router.patch("/update-data", response_model=ClientRead)
+@router.patch("/update-data", response_model=ClientRead, status_code=status.HTTP_200_OK)
 async def update_me(
     data: ClientUpdate,
     db: DbSession,

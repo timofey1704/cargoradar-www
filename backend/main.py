@@ -7,8 +7,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
+from executor.models import *  # noqa: F401
+from client.models import *  # noqa: F401
+from admin.models import *  # noqa: F401
+from core.models import *  # noqa: F401
+
 from executor.routes.auth import router as executor_auth_router
 from client.routes.auth import router as client_auth_router
+from client.routes.support import router as client_support_router
 
 logging.basicConfig(
     level=logging.INFO,
@@ -99,6 +105,7 @@ app.add_middleware(
 
 app.include_router(executor_auth_router, prefix="/api/executor") # авторизация исполнителей: /api/executor/auth/*
 app.include_router(client_auth_router, prefix="/api/client") # авторизация клиентов: /api/client/auth/*
+app.include_router(client_support_router, prefix="/api/client") # саппорт клиентов: /api/client/account/support*
 
 # отдаём загруженный медиаконтент по /uploads/...
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")

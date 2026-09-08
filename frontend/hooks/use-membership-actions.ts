@@ -1,20 +1,14 @@
 import { useQuery } from '@tanstack/react-query'
 
-import { getMembershipInfo, getExecutorMembershipInfo } from '@/lib/clientAccount/membership'
+import { getMembershipInfo } from '@/lib/clientAccount/membership'
 import type { MembershipInfo } from '@/types/index'
 
-export function useGetMembershipInfo() {
-  return useQuery<MembershipInfo>({
-    queryKey: ['membership-info'],
-    queryFn: getMembershipInfo,
-    retry: false,
-  })
-}
+type MembershipRole = 'client' | 'executor'
 
-export function useGetExecutorMembershipInfo() {
+export function useGetMembershipInfo(role: MembershipRole = 'client') {
   return useQuery<MembershipInfo>({
-    queryKey: ['executor-membership-info'],
-    queryFn: getExecutorMembershipInfo,
+    queryKey: ['membership-info', role],
+    queryFn: () => getMembershipInfo(role),
     retry: false,
   })
 }

@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 
-import { getMembershipInfo } from '@/lib/clientAccount/membership'
+import { getMembershipInfo } from '@/lib/utils/membership'
 import type { MembershipInfo } from '@/types/index'
 
 type MembershipRole = 'client' | 'executor'

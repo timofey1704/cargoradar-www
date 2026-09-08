@@ -16,13 +16,9 @@ import { uploadImage } from '@/lib/utils/image-upload'
 import { getProxiedImageUrl } from '@/lib/utils/image-proxy'
 import showToast from '@/components/ui/toast'
 import type { Client } from '@/types'
+import type { ProfileImageResponse } from '@/types/account'
 
 import { profileSchema, type ProfileFormInput } from '@/schemas/account/profile/profileSchema'
-
-type ProfileImageResponse = {
-  user: { image: string; [key: string]: string }
-  message: string
-}
 
 const ProfilePage = () => {
   const { client, setClient } = useClientStore()

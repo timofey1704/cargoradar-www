@@ -24,11 +24,12 @@ interface Supplier {
   legal_name: string
   unp: string
   address: string
+  brands: string[]
 }
 
 interface Service {
   legal_name: string
   unp: string
   address: string
-  supportedCars: Car[]
+  brands: string[]
 }

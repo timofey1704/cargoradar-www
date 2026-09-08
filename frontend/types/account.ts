@@ -44,3 +44,8 @@ export interface SupportTicket {
   created_at: string
   updated_at: string
 }
+
+export type ProfileImageResponse = {
+  user: { image: string; [key: string]: string }
+  message: string
+}

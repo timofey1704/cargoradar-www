@@ -21,6 +21,13 @@ export const ExecutorTypesNames: Record<ExecutorType, string> = {
   towtruck: 'Эвакуатор',
 }
 
+const brandsSchema = z
+  .array(z.string())
+  .min(1, 'Выберите хотя бы одну марку автомобиля')
+  .refine(value => !value.includes('all') || value.length === 1, {
+    message: 'Нельзя выбрать «Все марки» вместе с конкретными марками',
+  })
+
 const commonFields = {
   name: z.string().min(1, 'Введите имя'),
 
@@ -38,7 +45,7 @@ const commonFields = {
   }),
 }
 
-const carrierSchema = z.object({
+export const carrierSchema = z.object({
   ...commonFields,
 
   type: z.literal('carrier'),
@@ -46,7 +53,7 @@ const carrierSchema = z.object({
   cars: z.array(carSchema).min(1, 'Добавьте хотя бы один автомобиль'),
 })
 
-const supplierSchema = z.object({
+export const supplierSchema = z.object({
   ...commonFields,
 
   type: z.literal('supplier'),
@@ -60,19 +67,10 @@ const supplierSchema = z.object({
 
   pickup_point: z.string().min(1, 'Введите точку выдачи'),
 
-  brands: z
-    .array(z.string())
-    .min(1, 'Выберите хотя бы одну марку автомобиля')
-    .refine(
-      value =>
-        (value.length > 0 && !value.includes('all')) || (value.includes('all') && value.length > 0),
-      {
-        message: 'Выберите хотя бы одну марку автомобиля',
-      }
-    ),
+  brands: brandsSchema,
 })
 
-const serviceSchema = z.object({
+export const serviceSchema = z.object({
   ...commonFields,
 
   type: z.literal('service'),
@@ -86,16 +84,7 @@ const serviceSchema = z.object({
 
   service_address: z.string().min(1, 'Введите адрес СТО'),
 
-  brands: z
-    .array(z.string())
-    .min(1, 'Выберите хотя бы одну марку автомобиля')
-    .refine(
-      value =>
-        (value.length > 0 && !value.includes('all')) || (value.includes('all') && value.length > 0),
-      {
-        message: 'Выберите хотя бы одну марку автомобиля',
-      }
-    ),
+  brands: brandsSchema,
 })
 
 const towtruckSchema = z.object({

@@ -1,25 +1,16 @@
-import { useQuery } from '@tanstack/react-query'
-import { useMutation } from '@tanstack/react-query'
+import { useQuery, useMutation } from '@tanstack/react-query'
+
 import showToast from '@/components/ui/toast'
 import type { SupportFormOutput } from '@/schemas/support/createRequest'
-
-import { clientRequest, executorRequest } from '@/lib/support/get-requests'
+import { getSupportRequests, type SupportRole } from '@/lib/support/get-requests'
 import type { SupportTicket } from '@/types/index'
 
 type CreateSupportRequestFunction = (values: SupportFormOutput) => Promise<unknown>
 
-export function useSupportRequests() {
+export function useSupportRequests(role: SupportRole) {
   return useQuery<SupportTicket[]>({
-    queryKey: ['support-requests'],
-    queryFn: clientRequest,
-    retry: false,
-  })
-}
-
-export function useExecutorSupportRequests() {
-  return useQuery<SupportTicket[]>({
-    queryKey: ['executor-support-requests'],
-    queryFn: executorRequest,
+    queryKey: [role === 'client' ? 'support-requests' : 'executor-support-requests'],
+    queryFn: () => getSupportRequests(role),
     retry: false,
   })
 }

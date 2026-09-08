@@ -53,37 +53,27 @@ export const carrierSchema = z.object({
   cars: z.array(carSchema).min(1, 'Добавьте хотя бы один автомобиль'),
 })
 
-export const supplierSchema = z.object({
+export const serviceSchema = z.object({
   ...commonFields,
-
-  type: z.literal('supplier'),
-
+  type: z.literal('service'),
   legal_name: z.string().min(1, 'Введите название юр. лица'),
-
   UNP: z
     .string()
     .min(9, 'УНП должен содержать 9 символов')
     .max(9, 'УНП должен содержать 9 символов'),
-
-  pickup_point: z.string().min(1, 'Введите точку выдачи'),
-
+  address: z.string().min(1, 'Введите адрес'),
   brands: brandsSchema,
 })
 
-export const serviceSchema = z.object({
+export const supplierSchema = z.object({
   ...commonFields,
-
-  type: z.literal('service'),
-
+  type: z.literal('supplier'),
   legal_name: z.string().min(1, 'Введите название юр. лица'),
-
   UNP: z
     .string()
     .min(9, 'УНП должен содержать 9 символов')
     .max(9, 'УНП должен содержать 9 символов'),
-
-  service_address: z.string().min(1, 'Введите адрес СТО'),
-
+  address: z.string().min(1, 'Введите адрес'),
   brands: brandsSchema,
 })
 

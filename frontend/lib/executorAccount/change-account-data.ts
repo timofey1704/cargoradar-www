@@ -13,20 +13,13 @@ function toBackendPayload(values: EditProfileFormOutput) {
 
   switch (values.type) {
     case 'carrier':
-      // у перевозчика нет юр. полей и брендов — машины редактируются отдельно
       break
 
     case 'supplier':
-      payload.legal_name = values.legal_name
-      payload.UNP = values.UNP
-      payload.pickup_point = values.pickup_point
-      payload.brands = values.brands
-      break
-
     case 'service':
       payload.legal_name = values.legal_name
       payload.UNP = values.UNP
-      payload.service_address = values.service_address
+      payload.address = values.address
       payload.brands = values.brands
       break
   }

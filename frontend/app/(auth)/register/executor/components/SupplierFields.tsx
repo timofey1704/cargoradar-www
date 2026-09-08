@@ -21,7 +21,7 @@ const SupplierFields = () => {
         <FormInput<RegisterFormInput> name="UNP" label="УНП" placeholder="123456789" />
 
         <FormInput<RegisterFormInput>
-          name="pickup_point"
+          name="address"
           label="Точка выдачи"
           placeholder="г. Минск, ул. ..."
         />

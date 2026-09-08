@@ -17,7 +17,7 @@ export function getEditProfileDefaultValues(executor: Executor | null): EditProf
         type: 'supplier',
         legal_name: executor.supplier?.legal_name ?? '',
         UNP: executor.supplier?.unp ?? '',
-        pickup_point: executor.supplier?.address ?? '',
+        address: executor.supplier?.address ?? '',
         brands: executor.supplier?.brands ?? [],
       }
 
@@ -27,7 +27,7 @@ export function getEditProfileDefaultValues(executor: Executor | null): EditProf
         type: 'service',
         legal_name: executor.service?.legal_name ?? '',
         UNP: executor.service?.unp ?? '',
-        service_address: executor.service?.address ?? '',
+        address: executor.service?.address ?? '',
         brands: executor.service?.brands ?? [],
       }
 

@@ -21,7 +21,7 @@ const ServiceFields = () => {
         <FormInput<RegisterFormInput> name="UNP" label="УНП" placeholder="123456789" />
 
         <FormInput<RegisterFormInput>
-          name="service_address"
+          name="address"
           label="Адрес СТО"
           placeholder="г. Минск, ул. Примерная, д. 1"
         />

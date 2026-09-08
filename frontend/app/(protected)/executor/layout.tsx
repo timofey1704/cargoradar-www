@@ -10,7 +10,7 @@ import useExecutorStore from '@/store/executorStore'
 import AccountSidebar from '@/components/account/sidebar'
 import { Loader } from '@/components/ui/loader'
 import { Executor } from '@/types'
-import { NavigationItem } from '@/components/account/types'
+import { NavigationItem } from '@/types'
 
 export default function ExecutorLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()

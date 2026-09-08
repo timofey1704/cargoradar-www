@@ -8,7 +8,7 @@ import Logout from './logout'
 import { getAccountTypeConfig } from '@/consts/accountTypes'
 import { getProxiedImageUrl } from '@/lib/utils/image-proxy'
 import Burger from './burger'
-import type { AccountSidebarProps } from './types'
+import type { AccountSidebarProps } from '@/types'
 import { navItemClassName } from './navItemStyles'
 
 const AccountSidebar: React.FC<AccountSidebarProps> = ({ accountType, user, navigation }) => {

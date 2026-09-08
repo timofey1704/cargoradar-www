@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import type { BurgerProps } from './types'
+import type { BurgerProps } from '@/types'
 import Link from 'next/link'
 import { navItemClassName } from './navItemStyles'
 import { usePathname } from 'next/navigation'

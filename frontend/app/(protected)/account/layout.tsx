@@ -10,7 +10,7 @@ import useClientStore from '@/store/clientStore'
 import AccountSidebar from '@/components/account/sidebar'
 import { Loader } from '@/components/ui/loader'
 import { Client } from '@/types'
-import { NavigationItem } from '@/components/account/types'
+import { NavigationItem } from '@/types'
 
 export default function AccountLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()

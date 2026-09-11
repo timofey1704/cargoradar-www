@@ -55,7 +55,7 @@ const SupportView = ({ requests, isLoading, isError, isPending, onSubmit }: Supp
   const handleCreateSupportRequest = handleSubmit(onSubmit)
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 pb-5">
       <div>
         <h1 className="text-2xl font-semibold text-gray-900">Поддержка</h1>
 

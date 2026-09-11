@@ -68,6 +68,7 @@ export const carSchema = z.object({
     .lte(2026, 'Год выпуска должен быть не больше 2026'),
 
   photo: z.instanceof(File).optional(),
+  price_per_km: z.string().optional(),
 
   VIN: z
     .string()

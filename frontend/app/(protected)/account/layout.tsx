@@ -10,7 +10,6 @@ import type { NavigationItem } from '@/types'
 const clientNavigation: NavigationItem[] = [
   { name: 'Профиль', href: '/account', icon: User },
   { name: 'Заказы', href: '/account/orders', icon: Package },
-  { name: 'Гараж', href: '/account/garage', icon: CarFront },
   { name: 'Отклики', href: '/account/distinctions', icon: MessageSquareReply },
   { name: 'Поддержка', href: '/account/support', icon: Headset },
   { name: 'Подписка', href: '/account/membership', icon: Banknote, visibleFor: ['legal'] },

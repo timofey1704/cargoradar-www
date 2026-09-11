@@ -116,7 +116,7 @@ export default function ExecutorLoginPage() {
               <p className="text-center text-sm text-gray-500">
                 Ещё не зарегистрированы?{' '}
                 <Link
-                  href="register/executor"
+                  href="/register/executor"
                   className="font-semibold text-orange-500 transition-colors hover:text-orange-600 hover:underline"
                 >
                   Создать аккаунт

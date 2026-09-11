@@ -127,7 +127,18 @@ const CarrierFields = () => {
                   }}
                 />
               </div>
-
+              <FormInput<RegisterFormInput>
+                name={`cars.${index}.price_per_km`}
+                label="Цена за 1 км"
+                placeholder="3 рубля"
+                type="number"
+                inputMode="numeric"
+                min={1}
+                max={2026}
+                registerOptions={{
+                  valueAsNumber: true,
+                }}
+              />
               <div className="grid gap-4 sm:grid-cols-2">
                 <FormInput<RegisterFormInput>
                   name={`cars.${index}.license_plate`}

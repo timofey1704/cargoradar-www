@@ -58,11 +58,13 @@ const AccountSidebar: React.FC<AccountSidebarProps> = ({ accountType, user, navi
             >
               {accountTypeLabel}
             </span>
-            <span
-              className={`inline-flex items-center justify-center rounded-md px-2 py-0.5 text-xs ${membershipClassName}`}
-            >
-              {user.membership || 'Нет подписки'}
-            </span>
+            {user.type !== 'individual' && (
+              <span
+                className={`inline-flex items-center justify-center rounded-md px-2 py-0.5 text-xs ${membershipClassName}`}
+              >
+                {user.membership || 'Нет подписки'}
+              </span>
+            )}
           </div>
         </div>
 

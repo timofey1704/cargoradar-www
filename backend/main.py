@@ -12,10 +12,13 @@ from client.models import *  # noqa: F401
 from admin.models import *  # noqa: F401
 from core.models import *  # noqa: F401
 
+from core.routes.main_page import router as main_page_router
+
 from executor.routes.auth import router as executor_auth_router
 from executor.routes.support import router as executor_support_router
 from executor.routes.membership import router as executor_membership_router
 from executor.routes.profile import router as executor_profile_router
+
 from client.routes.auth import router as client_auth_router
 from client.routes.profile import router as client_profile_router
 from client.routes.support import router as client_support_router
@@ -107,6 +110,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(main_page_router, prefix="/api") # главная страница
+
 
 app.include_router(executor_auth_router, prefix="/api/executor") # авторизация исполнителей: /api/executor/auth/*
 app.include_router(executor_support_router, prefix="/api/executor") # саппорт исполнителей: /api/executor/account/support*

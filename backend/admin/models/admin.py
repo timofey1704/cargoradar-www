@@ -11,6 +11,7 @@ from admin.models.enums.admin_types import AdminTypes
 
 if TYPE_CHECKING:
     from core.models.support_request import SupportRequest
+    from core.models.faq import FAQ
 
 
 class Admin(Base):
@@ -20,10 +21,10 @@ class Admin(Base):
     name: Mapped[str] = mapped_column(String(20))
     surname: Mapped[str] = mapped_column(String(20))
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
-    hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
+    hashed_password: Mapped[str] = mapped_column(String(255))
     
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     type: Mapped[AdminTypes] = mapped_column(
         SQLEnum(AdminTypes),
@@ -32,6 +33,7 @@ class Admin(Base):
     )
     
     support_requests: Mapped[list["SupportRequest"]] = relationship(back_populates="admin")
+    faqs: Mapped[list["FAQ"]] = relationship(back_populates="updated_by")
     
     def __repr__(self) -> str:
         return f"<Admin (id={self.id}, email={self.email})>"

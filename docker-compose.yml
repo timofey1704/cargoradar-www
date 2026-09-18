@@ -16,6 +16,8 @@ services:
 
     environment:
       WATCHPACK_POLLING: "true"
+      # (server components не могут использовать localhost — см. lib/main/get-faqs.ts)
+      INTERNAL_API_URL: http://backend:8000/api
 
     depends_on:
       - backend

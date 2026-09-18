@@ -1,0 +1,6 @@
+export { default as Hero } from './hero'
+export { default as HowItWorks } from './how-it-works'
+export { default as Services } from './services'
+export { default as Benefits } from './benefits'
+export { default as FAQ } from './faq'
+export { default as CTA } from './cta'

@@ -4,7 +4,9 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.14"
-dependencies = []
+dependencies = [
+    "redis>=8.1.0",
+]
 
 [dependency-groups]
 dev = [
@@ -21,3 +23,14 @@ dev = [
     "sqlalchemy[asyncio]>=2.0.51",
     "uvicorn[standard]>=0.49.0",
 ]
+
+[tool.pytest.ini_options]
+# async def-тесты и фикстуры работают без декораторов
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+# чтобы `from core... import ...` работал при запуске pytest из папки backend
+pythonpath = ["."]
+markers = [
+    "integration: тесты, которым нужен запущенный Redis",
+]
+

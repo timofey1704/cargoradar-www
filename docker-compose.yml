@@ -40,8 +40,14 @@ services:
 
       DATABASE_URL: postgresql+asyncpg://admin:${POSTGRES_PASSWORD}@postgres:5432/cargoradardb
 
+      # redis внутри docker-сети доступен по имени сервиса
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
 
   postgres:

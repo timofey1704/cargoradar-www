@@ -12,6 +12,11 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 30
     refresh_token_expire_days: int = 30
     
+    # redis — смс-коды верификации и другие временные данные
+    redis_host: str = "localhost"
+    redis_port: int = 6379
+    redis_db: int = 0
+    
     # админские токены — свои TTL (панелью пользуются реже, но сессию держать удобнее)
     admin_access_token_expire_minutes: int = 60
     admin_refresh_token_expire_days: int = 30

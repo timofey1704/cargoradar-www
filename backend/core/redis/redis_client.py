@@ -1,10 +1,15 @@
 import redis.asyncio as aioredis
+from redis.asyncio.retry import Retry
+from redis.backoff import NoBackoff
 
 from core.config import settings
 
-# смс-логика лежит рядом, в этой же папке (core/redis)
 from core.redis.can_send_new_code import can_send_new_code
+from core.redis.delete_cached_by_prefix import delete_cached_by_prefix
+from core.redis.delete_cached_keys import delete_cached_keys
 from core.redis.delete_verification_code import delete_verification_code
+from core.redis.get_cached_json import get_cached_json
+from core.redis.set_cached_json import set_cached_json
 from core.redis.set_verification_code import set_verification_code
 from core.redis.verify_code import verify_code
 
@@ -18,11 +23,15 @@ class RedisClient:
     """
 
     def __init__(self) -> None:
+        # повторы мгновенные (NoBackoff), их количество — settings.redis_retry_count
         self.redis: aioredis.Redis = aioredis.Redis(
             host=settings.redis_host,
             port=settings.redis_port,
             db=settings.redis_db,  # используем базу данных 0 для верификации
-            decode_responses=True  # автоматически декодировать ответы в строки
+            decode_responses=True,  # автоматически декодировать ответы в строки
+            socket_connect_timeout=settings.redis_connect_timeout,
+            socket_timeout=settings.redis_command_timeout,
+            retry=Retry(NoBackoff(), settings.redis_retry_count),
         )
 
     async def set_verification_code(self, phone_number: str, code: str, expires_in: int = 600) -> bool:
@@ -60,6 +69,24 @@ class RedisClient:
     async def close(self) -> None:
         """Закрывает пул подключений к Redis (например, на shutdown приложения)."""
         await self.redis.aclose()
+
+    # --- кеш ответов ---------------------------------------------------------
+
+    async def get_cached_json(self, key: str):
+        """Читает значение из кеша; None — если кеша нет или Redis недоступен."""
+        return await get_cached_json(self.redis, key)
+
+    async def set_cached_json(self, key: str, value, ttl: int) -> bool:
+        """Кладёт значение в кеш как JSON с временем жизни ttl секунд."""
+        return await set_cached_json(self.redis, key, value, ttl)
+
+    async def delete_cached_keys(self, *keys: str) -> bool:
+        """Удаляет конкретные ключи кеша (точечная инвалидация)."""
+        return await delete_cached_keys(self.redis, *keys)
+
+    async def delete_cached_by_prefix(self, prefix: str) -> int:
+        """Удаляет все ключи кеша по префиксу, возвращает количество удалённых."""
+        return await delete_cached_by_prefix(self.redis, prefix)
 
 
 redis_client = RedisClient()

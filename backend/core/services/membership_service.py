@@ -4,6 +4,8 @@ from math import ceil
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.config import settings
+from core.redis.cache import cached
 from core.repositories.membership_repository import MembershipRepository
 from core.repositories.subscription_repository import SubscriptionRepository
 from core.schemas.membership_read import (
@@ -19,8 +21,9 @@ class MembershipService:
     def __init__(self, db: AsyncSession) -> None:
         self.db = db
 
+    @cached(ttl=settings.cache_ttl_membership_plans, key="membership:plans")
     async def get_plans(self) -> list[MembershipPlanRead]:
-        """Все доступные к покупке тарифные планы со списком фич."""
+        """Все доступные к покупке тарифные планы со списком фич (кешируем в Redis)."""
         repo = MembershipRepository(self.db)
         plans = await repo.get_available_with_features()
         return [MembershipPlanRead.model_validate(plan) for plan in plans]

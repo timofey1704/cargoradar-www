@@ -16,6 +16,17 @@ class Settings(BaseSettings):
     redis_host: str = "localhost"
     redis_port: int = 6379
     redis_db: int = 0
+    # короткие таймауты: если Redis лежит, смс-флоу не должен ждать
+    redis_connect_timeout: float = 1.0
+    redis_command_timeout: float = 2.0
+    # сколько раз повторить команду при обрыве соединения (повторы без пауз)
+    redis_retry_count: int = 3
+
+    # кеш ответов GET-роутов — для данных, которые редко меняются
+    cache_enabled: bool = True
+    cache_prefix: str = "cache:"
+    cache_ttl_faq: int = 86400  # секунд
+    cache_ttl_membership_plans: int = 86400  # секунд
     
     # админские токены — свои TTL (панелью пользуются реже, но сессию держать удобнее)
     admin_access_token_expire_minutes: int = 60

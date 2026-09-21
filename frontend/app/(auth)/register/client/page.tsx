@@ -136,12 +136,19 @@ export default function ClientRegisterPage() {
                     <span className="text-xs leading-5 text-gray-500">
                       Я принимаю{' '}
                       <Link
-                        href="/privacy"
+                        href="/privacy-policy"
                         className="font-medium text-gray-700 underline underline-offset-2 transition-colors hover:text-orange-500"
                       >
                         политику конфиденциальности
                       </Link>{' '}
-                      и условия использования сервиса.
+                      и{' '}
+                      <Link
+                        href="/terms-and-conditions"
+                        className="font-medium text-gray-700 underline underline-offset-2 transition-colors hover:text-orange-500"
+                      >
+                        пользовательское соглашение
+                      </Link>{' '}
+                      сервиса.
                     </span>
                   </label>
 

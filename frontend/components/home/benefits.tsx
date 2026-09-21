@@ -31,7 +31,9 @@ const Benefits = () => {
           <div>
             <span className="text-orange text-sm font-semibold">ПОЧЕМУ CARGORADAR</span>
 
-            <h2 className="text-text mt-3 max-w-lg">Сделайте работу с перевозками проще</h2>
+            <h2 className="text-text mt-3 max-w-lg dark:text-white">
+              Сделайте работу с перевозками проще
+            </h2>
 
             <p className="mt-5 max-w-lg text-base leading-7 text-gray-500">
               Один сервис для поиска исполнителей, создания заказов и взаимодействия на всех этапах

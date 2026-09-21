@@ -38,7 +38,7 @@ const HowItWorks: React.FC<HowItWorksProps> = ({ id }) => {
         <div className="mx-auto max-w-2xl text-center">
           <span className="text-orange text-sm font-semibold">КАК ЭТО РАБОТАЕТ</span>
 
-          <h2 className="text-text mt-3">Перевозка в несколько простых шагов</h2>
+          <h2 className="text-text mt-3 dark:text-white">Перевозка в несколько простых шагов</h2>
 
           <p className="mt-4 text-base leading-7 text-gray-500">
             CargoRadar помогает пройти путь от создания заявки до завершения заказа в одном сервисе.

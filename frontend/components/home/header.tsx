@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { ChevronDown, User } from 'lucide-react'
 import Scroll from '@/hooks/use-scroll'
@@ -10,6 +10,8 @@ import useExecutorStore from '@/store/executorStore'
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false)
+  const [isCatalogOpen, setIsCatalogOpen] = useState(false)
+  const catalogRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!isOpen) return
@@ -35,6 +37,29 @@ const Header = () => {
     }
   }, [isOpen])
 
+  useEffect(() => {
+    if (!isCatalogOpen) return
+
+    // закрываем выпадашку по клику вне её и по Escape
+    const handlePointerDown = (event: MouseEvent) => {
+      if (catalogRef.current && !catalogRef.current.contains(event.target as Node)) {
+        setIsCatalogOpen(false)
+      }
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setIsCatalogOpen(false)
+    }
+
+    document.addEventListener('mousedown', handlePointerDown)
+    window.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown)
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isCatalogOpen])
+
   const closeMenu = () => setIsOpen(false)
 
   const client = useClientStore(state => state.client)
@@ -53,13 +78,30 @@ const Header = () => {
         </Link>
 
         <nav className="hidden items-center gap-8 lg:flex">
-          <details className="group relative">
-            <summary className="text-text hover:text-orange flex cursor-pointer list-none items-center gap-1.5 text-sm font-medium transition-colors">
+          <div ref={catalogRef} className="relative">
+            <button
+              type="button"
+              onClick={() => setIsCatalogOpen(prev => !prev)}
+              aria-expanded={isCatalogOpen}
+              aria-controls="catalog-menu"
+              className="text-text hover:text-orange flex cursor-pointer items-center gap-1.5 text-sm font-medium transition-colors"
+            >
               Найти исполнителя
-              <ChevronDown className="size-4 transition-transform duration-200 group-open:rotate-180" />
-            </summary>
+              <ChevronDown
+                className={`size-4 transition-transform duration-200 ${
+                  isCatalogOpen ? 'rotate-180' : 'rotate-0'
+                }`}
+              />
+            </button>
 
-            <div className="absolute top-full left-1/2 z-50 mt-4 w-145 -translate-x-1/2 rounded-2xl border border-gray-200 bg-white p-3 shadow-xl">
+            <div
+              id="catalog-menu"
+              className={`absolute top-full left-1/2 z-50 mt-4 w-145 origin-top -translate-x-1/2 rounded-2xl border border-gray-200 bg-white p-3 shadow-xl transition-all duration-200 ease-out ${
+                isCatalogOpen
+                  ? 'visible translate-y-0 scale-100 opacity-100'
+                  : 'pointer-events-none invisible -translate-y-2 scale-95 opacity-0'
+              }`}
+            >
               <div className="grid grid-cols-2 gap-1">
                 {searchCategories.map(category => {
                   const Icon = category.icon
@@ -68,6 +110,7 @@ const Header = () => {
                     <Link
                       key={category.id}
                       href={category.href}
+                      onClick={() => setIsCatalogOpen(false)}
                       className="group/item flex gap-3 rounded-xl p-4 transition-colors hover:bg-gray-50"
                     >
                       <div className="bg-orange/10 group-hover/item:bg-orange flex size-10 shrink-0 items-center justify-center rounded-xl transition-colors">
@@ -87,12 +130,16 @@ const Header = () => {
               </div>
 
               <div className="mt-2 border-t border-gray-100 px-4 py-3">
-                <Link href="/search" className="text-orange text-sm font-medium hover:underline">
+                <Link
+                  href="/search"
+                  onClick={() => setIsCatalogOpen(false)}
+                  className="text-orange text-sm font-medium hover:underline"
+                >
                   Посмотреть всех исполнителей →
                 </Link>
               </div>
             </div>
-          </details>
+          </div>
 
           <Scroll
             moveTo="how-it-works"
@@ -113,7 +160,7 @@ const Header = () => {
           {user ? (
             <Link
               href={accountHref}
-              className="text-text flex items-center gap-2 rounded-xl bg-gray-100 px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-gray-50"
+              className="text-text flex items-center gap-2 rounded-xl bg-gray-100 px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-gray-50 dark:bg-white"
             >
               <User className="text-orange size-4 shrink-0" />
               <span className="max-w-40 truncate">{userName}</span>

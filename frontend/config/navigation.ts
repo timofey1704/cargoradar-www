@@ -52,7 +52,7 @@ export const accountNavigation = {
   },
   register: {
     title: 'Регистрация',
-    href: '/register/client',
+    href: '/register',
   },
 }
 
@@ -65,11 +65,11 @@ export const legalNavigation: legalNavigation[] = [
   {
     id: 2,
     title: 'Пользовательское соглашение',
-    href: '/terms',
+    href: '/terms-and-conditions',
   },
-  {
-    id: 3,
-    title: 'Обработка персональных данных',
-    href: '/personal-data',
-  },
+  // {
+  //   id: 3,
+  //   title: 'Обработка персональных данных',
+  //   href: '/personal-data',
+  // },
 ]

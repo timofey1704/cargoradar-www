@@ -16,6 +16,7 @@ if TYPE_CHECKING:
     from client.models.legal_client import LegalClient
     from core.models.membership import Subscription
     from core.models.support_request import SupportRequest
+    from core.models.post import Post
 
 
 class Client(Base):
@@ -45,6 +46,7 @@ class Client(Base):
     refresh_tokens: Mapped[list["RefreshToken"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     subscriptions: Mapped[list["Subscription"]] = relationship(back_populates="client", cascade="all, delete-orphan")
     support_requests: Mapped[list["SupportRequest"]] = relationship(back_populates="client", cascade="all, delete-orphan")
+    posts: Mapped[list["Post"]] = relationship(back_populates="client", cascade="all, delete-orphan")
     
     def __repr__(self) -> str:
         return f"<User(id={self.id}, email={self.email})>"

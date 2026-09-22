@@ -1,6 +1,5 @@
 import enum
 
-
 class SubscriptionStatus(str, enum.Enum):
     ACTIVE = "active"          # действует прямо сейчас
     EXPIRED = "expired"        # срок вышел, не продлили/не оплатили вовремя

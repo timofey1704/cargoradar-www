@@ -93,34 +93,56 @@ services:
       timeout: 3s
       retries: 5
 
+  # OSRM — роутинг по дорогам (профиль truck-soft, Беларусь).
+  # Данные готовятся один раз: docker compose --profile tools run --rm osrm-prepare
   osrm-prepare:
-    image: osrm/osrm-backend
+    image: ghcr.io/project-osrm/osrm-backend:v5.27.1
     container_name: cargoradar-osrm-prepare
     profiles: ["tools"]  # не запускается при обычном `docker compose up`
     volumes:
       - ./osrm/data:/data
       - ./osrm/profiles:/opt/profiles
-    entrypoint: ["/bin/sh", "-c"]
+    entrypoint: ["/bin/bash", "-c"]
     command:
       - |
-        osrm-extract -p /opt/profiles/truck.lua /data/region.osm.pbf &&
-        osrm-partition /data/region.osrm &&
+        set -e
+        # В образе OSRM нет truck-профиля: он лежит в ./osrm/profiles (см. README).
+        # Остальные модули профиля (lib/set, lib/access, ...) берём из самого образа;
+        # cp -n не перезатирает кастомный lib/way_handlers.lua из truck-soft.
+        mkdir -p /opt/profiles/lib
+        cp -n /opt/lib/*.lua /opt/profiles/lib/ 2>/dev/null || true
+        osrm-extract -p /opt/profiles/truck.lua /data/region.osm.pbf
+        osrm-partition /data/region.osrm
         osrm-customize /data/region.osrm
+        echo "OSRM data готовы: /data/region.osrm*"
 
   osrm:
-    image: osrm/osrm-backend
+    image: ghcr.io/project-osrm/osrm-backend:v5.27.1
     container_name: cargoradar-osrm
     restart: unless-stopped
     volumes:
       - ./osrm/data:/data
-    command: osrm-routed --algorithm mld --max-table-size 10000 /data/region.osrm
+      - ./osrm/healthcheck.sh:/opt/healthcheck.sh:ro
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        # osrm-extract в 5.27 не создаёт базовый файл region.osrm: данные лежат в
+        # region.osrm.*, поэтому признак готовности — region.osrm.mldgr от osrm-customize.
+        if [ ! -f /data/region.osrm.mldgr ]; then
+          echo "Данные OSRM не подготовлены: docker compose --profile tools run --rm osrm-prepare" >&2
+          exit 1
+        fi
+        exec osrm-routed --algorithm mld --max-table-size 10000 /data/region.osrm
     ports:
-      - "5001:5000"  # 5000 занят фронтом? нет, но на всякий случай не конфликтуем с популярным портом
+      # на хосте 5001, потому что 5000 на macOS занимает AirPlay Receiver
+      - "5001:5000"
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:5000/route/v1/driving/27.5615,53.9006;27.5715,53.9106 || exit 1"]
+      # в образе нет wget/curl, поэтому HTTP проверяем bash-скриптом через /dev/tcp
+      test: ["CMD", "bash", "/opt/healthcheck.sh"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
 
 volumes:
   postgres_data:

@@ -22,6 +22,9 @@ class Settings(BaseSettings):
     # сколько раз повторить команду при обрыве соединения (повторы без пауз)
     redis_retry_count: int = 3
 
+    # OSRM — расчёт маршрутов/километража по дорогам (в docker-сети задаётся в compose)
+    osrm_url: str = "http://localhost:5000"
+
     # кеш ответов GET-роутов — для данных, которые редко меняются
     cache_enabled: bool = True
     cache_prefix: str = "cache:"

@@ -92,4 +92,8 @@ staticfiles/
 *.pid
 docker-compose.override.yml
 
+# OSRM: карта и truck-профиль готовятся локально один раз (см. README, шаг 5)
+osrm/data/
+osrm/profiles/
+
 uploads/

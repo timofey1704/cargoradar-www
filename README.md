@@ -25,7 +25,7 @@
 
 - Node.js (рекомендуется версия 24.x или выше)
 - Python (рекомендуется версия 3.14 или выше)
-- PostgreSQL (рекомендуется версия 17.x или выше)
+- PostgreSQL (рекомендуется версия 17.5 или выше)
 
 ### Шаги для установки
 
@@ -67,6 +67,17 @@
    REFRESH_SECRET_KEY=
    ACCESS_TOKEN_EXPIRE_MINUTES=30
    REFRESH_TOKEN_EXPIRE_DAYS=30
+   ```
+
+5. **Разовая подготовка данных** 
+   Делается один раз локально/на сервере, не на каждый рестарт
+   ```bash
+   mkdir -p osrm/data osrm/profiles
+   wget -O osrm/data/region.osm.pbf https://download.geofabrik.de/europe/belarus-latest.osm.pbf
+   wget -O osrm/profiles/truck.lua https://raw.githubusercontent.com/Project-OSRM/osrm-backend/master/profiles/truck.lua
+
+   docker compose --profile tools run --rm osrm-prepare
+   docker compose up -d osrm
    ```
 
 Теперь проект будет доступен по адресу `http://localhost:3000`.

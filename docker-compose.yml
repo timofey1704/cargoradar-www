@@ -37,7 +37,7 @@ services:
 
     environment:
       WATCHFILES_FORCE_POLLING: "true"
-
+      OSRM_URL: http://osrm:5000
       DATABASE_URL: postgresql+asyncpg://admin:${POSTGRES_PASSWORD}@postgres:5432/cargoradardb
 
       # redis внутри docker-сети доступен по имени сервиса
@@ -91,6 +91,35 @@ services:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 3s
+      retries: 5
+
+  osrm-prepare:
+    image: osrm/osrm-backend
+    container_name: cargoradar-osrm-prepare
+    profiles: ["tools"]  # не запускается при обычном `docker compose up`
+    volumes:
+      - ./osrm/data:/data
+      - ./osrm/profiles:/opt/profiles
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        osrm-extract -p /opt/profiles/truck.lua /data/region.osm.pbf &&
+        osrm-partition /data/region.osrm &&
+        osrm-customize /data/region.osrm
+
+  osrm:
+    image: osrm/osrm-backend
+    container_name: cargoradar-osrm
+    restart: unless-stopped
+    volumes:
+      - ./osrm/data:/data
+    command: osrm-routed --algorithm mld --max-table-size 10000 /data/region.osrm
+    ports:
+      - "5001:5000"  # 5000 занят фронтом? нет, но на всякий случай не конфликтуем с популярным портом
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:5000/route/v1/driving/27.5615,53.9006;27.5715,53.9106 || exit 1"]
+      interval: 10s
+      timeout: 5s
       retries: 5
 
 volumes:

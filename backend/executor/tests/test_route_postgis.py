@@ -47,7 +47,7 @@ async def _add_route(session, executor_id: int, **overrides) -> Route:
 
 
 async def test_geometry_columns_are_registered_in_postgis(db_session):
-    """Колонки координат зарегистрированы в PostGIS как POINT с SRID 4326."""
+    """Колонки координат и пути зарегистрированы в PostGIS как POINT/LINESTRING с SRID 4326."""
     rows = (
         await db_session.execute(
             text(
@@ -60,6 +60,7 @@ async def test_geometry_columns_are_registered_in_postgis(db_session):
     ).all()
 
     assert [(r.f_geometry_column, r.coord_dimension, r.srid, r.type) for r in rows] == [
+        ("path", 2, 4326, "LINESTRING"),
         ("point_a_location", 2, 4326, "POINT"),
         ("point_b_location", 2, 4326, "POINT"),
     ]
@@ -79,6 +80,7 @@ async def test_coordinate_columns_have_gist_indexes(db_session):
     gist_indexes = {row.indexname: row.indexdef for row in rows}
 
     assert set(gist_indexes) == {
+        "idx_routes_path",
         "idx_routes_point_a_location",
         "idx_routes_point_b_location",
     }

@@ -14,6 +14,7 @@ from client.models.enums.client_types import ClientTypes
 if TYPE_CHECKING:
     from client.models.refresh_token import RefreshToken
     from client.models.legal_client import LegalClient
+    from client.models.request import CargoRequest
     from core.models.membership import Subscription
     from core.models.support_request import SupportRequest
     from core.models.post import Post
@@ -47,6 +48,7 @@ class Client(Base):
     subscriptions: Mapped[list["Subscription"]] = relationship(back_populates="client", cascade="all, delete-orphan")
     support_requests: Mapped[list["SupportRequest"]] = relationship(back_populates="client", cascade="all, delete-orphan")
     posts: Mapped[list["Post"]] = relationship(back_populates="client", cascade="all, delete-orphan")
+    cargo_requests: Mapped[list["CargoRequest"]] = relationship(back_populates="client", cascade="all, delete-orphan")
     
     def __repr__(self) -> str:
         return f"<User(id={self.id}, email={self.email})>"

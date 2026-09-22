@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { searchCategories, legalNavigation } from '@/config/navigation'
+import { searchCategories, legalNavigation, accountNavigation } from '@/config/navigation'
 import Scroll from '@/hooks/use-scroll'
 
 const Footer = () => {
@@ -56,17 +56,16 @@ const Footer = () => {
                 </Scroll>
               </li>
 
-              <li>
-                <Link href="/login" className="hover:text-orange text-sm text-gray-500">
-                  Войти
-                </Link>
-              </li>
-
-              <li>
-                <Link href="/register/client" className="hover:text-orange text-sm text-gray-500">
-                  Регистрация
-                </Link>
-              </li>
+              {accountNavigation.map(nav => (
+                <li key={nav.href}>
+                  <Link
+                    href={nav.href}
+                    className="hover:text-orange text-sm text-gray-500 transition-colors"
+                  >
+                    {nav.title}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 

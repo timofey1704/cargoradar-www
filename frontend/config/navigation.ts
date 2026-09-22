@@ -14,6 +14,12 @@ export type legalNavigation = {
   href: string
 }
 
+export type accountNavigation = {
+  id: number
+  title: string
+  href: string
+}
+
 export const searchCategories: SearchCategory[] = [
   {
     id: 1,
@@ -45,16 +51,18 @@ export const searchCategories: SearchCategory[] = [
   },
 ]
 
-export const accountNavigation = {
-  login: {
+export const accountNavigation: accountNavigation[] = [
+  {
+    id: 1,
     title: 'Войти',
     href: '/login',
   },
-  register: {
+  {
+    id: 2,
     title: 'Регистрация',
     href: '/register',
   },
-}
+]
 
 export const legalNavigation: legalNavigation[] = [
   {

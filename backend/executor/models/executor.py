@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from executor.models.supplier import Supplier
     from executor.models.towtruck import TowTruck
     from executor.models.vehicles import Vehicle
+    from executor.models.route import Route
     from core.models.membership import Subscription
     from core.models.support_request import SupportRequest
 
@@ -38,6 +39,7 @@ class Executor(Base):
     oauth_accounts: Mapped[list["OAuthAccount"]] = relationship(back_populates="executor", cascade="all, delete-orphan")
     refresh_tokens: Mapped[list["RefreshToken"]] = relationship(back_populates="executor", cascade="all, delete-orphan")
 
+    routes: Mapped[list["Route"]] = relationship(back_populates="executor")
     vehicles: Mapped[list["Vehicle"]] = relationship(
         back_populates="executor",
         cascade="all, delete-orphan",

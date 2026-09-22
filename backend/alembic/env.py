@@ -2,6 +2,7 @@ import asyncio
 from logging.config import fileConfig
 
 from alembic import context
+from geoalchemy2 import alembic_helpers
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import create_async_engine
 
@@ -44,8 +45,9 @@ POSTGIS_OWNED_SCHEMAS = frozenset({
 
 def include_object(object, name, type_, reflected, compare_to):
     """Исключаем объекты, принадлежащие расширению PostGIS."""
-    # Таблица spatial_ref_sys живёт в public, но принадлежит расширению postgis.
-    if type_ == "table" and name == "spatial_ref_sys":
+    # Таблица spatial_ref_sys и вьюха geometry_columns живут в public,
+    # но принадлежат расширению postgis.
+    if type_ == "table" and name in {"spatial_ref_sys", "geometry_columns"}:
         return False
 
     # Всё, что находится в схемах PostGIS (tiger, topology и т.п.), создаётся
@@ -77,6 +79,9 @@ def do_run_migrations(connection) -> None:
         connection=connection,
         target_metadata=target_metadata,
         include_object=include_object,
+        # Рендер PostGIS-типов (geoalchemy2.types.Geometry) в автогенерируемых
+        # миграциях: без этого Alembic не знает, как их импортировать.
+        render_item=alembic_helpers.render_item,
     )
     with context.begin_transaction():
         context.run_migrations()

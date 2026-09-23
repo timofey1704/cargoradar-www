@@ -8,18 +8,14 @@ from core.config import settings
 from core.models.enums.post_creator_type import PostCreatorType
 from core.models.post import Post
 from core.redis.cache import cache_key
-from core.redis.redis_client import RedisClient
 from core.repositories.search.feed import FeedItem
 from core.services.search.feed import FeedService
 from executor.models.route import Route
 
+# сервис кеширует ответы — все тесты модуля идут с подменённым (in-memory) Redis
+pytestmark = pytest.mark.usefixtures("cache_client")
+
 CREATED_AT = datetime(2026, 9, 1, 12, 0, tzinfo=timezone.utc)
-
-
-@pytest.fixture(autouse=True)
-def fake_cache(cache_client: RedisClient) -> RedisClient:
-    """Все тесты модуля идут с подменённым Redis: сервис ленты кешируется."""
-    return cache_client
 
 
 def _route(route_id: int) -> Route:
@@ -150,8 +146,11 @@ async def test_feed_is_cached_with_ttl(cache_client, fake_redis):
     assert repository.feed_calls == 1, "в БД ходим только на промахе кеша"
     assert repository.count_calls == 1
     assert first == second
-    assert await fake_redis.exists(cache_key("search:feed:0:20")) == 1
-    assert fake_redis.ttl_of(cache_key("search:feed:0:20")) == settings.cache_ttl_search_feed
+    assert await fake_redis.exists(cache_key("search:feed:limit=20:skip=0")) == 1
+    assert (
+        fake_redis.ttl_of(cache_key("search:feed:limit=20:skip=0"))
+        == settings.cache_ttl_search
+    )
 
 
 async def test_each_feed_page_has_its_own_cache_key(cache_client, fake_redis):
@@ -163,7 +162,7 @@ async def test_each_feed_page_has_its_own_cache_key(cache_client, fake_redis):
 
     assert repository.feed_calls == 2, "у каждой страницы свой ключ кеша"
     assert fake_redis.contains(
-        cache_key("search:feed:0:2"), cache_key("search:feed:2:2")
+        cache_key("search:feed:limit=2:skip=0"), cache_key("search:feed:limit=2:skip=2")
     )
 
 
@@ -171,7 +170,7 @@ async def test_feed_is_reloaded_after_invalidation(cache_client):
     service, repository = _service(_feed_items())
     await service.get_feed()
 
-    await cache_client.delete_cached_keys(cache_key("search:feed:0:20"))
+    await cache_client.delete_cached_keys(cache_key("search:feed:limit=20:skip=0"))
     await service.get_feed()
 
     assert repository.feed_calls == 2

@@ -30,6 +30,7 @@ class Settings(BaseSettings):
     cache_prefix: str = "cache:"
     cache_ttl_faq: int = 86400  # секунд
     cache_ttl_membership_plans: int = 86400  # секунд
+    cache_ttl_search_feed: int = 60  # секунд: лента обновляется часто, кеш только от пиков
     
     # админские токены — свои TTL (панелью пользуются реже, но сессию держать удобнее)
     admin_access_token_expire_minutes: int = 60

@@ -128,16 +128,6 @@ const Header = () => {
                   )
                 })}
               </div>
-
-              <div className="mt-2 border-t border-gray-100 px-4 py-3">
-                <Link
-                  href="/search"
-                  onClick={() => setIsCatalogOpen(false)}
-                  className="text-orange text-sm font-medium hover:underline"
-                >
-                  Посмотреть всех исполнителей →
-                </Link>
-              </div>
             </div>
           </div>
 
@@ -147,6 +137,14 @@ const Header = () => {
           >
             Как это работает
           </Scroll>
+
+          <Link
+            href="/search"
+            onClick={() => setIsCatalogOpen(false)}
+            className="text-text hover:text-orange cursor-pointer text-sm! font-medium transition-colors"
+          >
+            Посмотреть все заявки
+          </Link>
 
           <Scroll
             moveTo="faq"

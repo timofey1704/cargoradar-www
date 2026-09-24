@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query'
 import showToast from '@/components/ui/toast'
-import type { ProfileFormOutput } from '@/schemas/account/profile/profileSchema'
+import type { ProfileFormOutput } from '@/schemas/account/profileSchema'
 import type { EditProfileFormOutput } from '@/schemas/executor/profile/profileSchema'
 
 type ChangeAccountData = (values: ProfileFormOutput) => Promise<unknown>

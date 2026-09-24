@@ -37,8 +37,12 @@ class Settings(BaseSettings):
     admin_refresh_token_expire_days: int = 30
     
     # токены исполнителей 
-    admin_access_token_expire_minutes: int = 30
-    admin_refresh_token_expire_days: int = 30
+    executor_access_token_expire_minutes: int = 30
+    executor_refresh_token_expire_days: int = 30
+    
+    # геокодер
+    nominatim_url: str = "https://nominatim.openstreetmap.org"
+    nominatim_user_agent: str = "CargoRadar/1.0"
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

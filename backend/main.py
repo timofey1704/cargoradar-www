@@ -17,6 +17,7 @@ from core.routes.search.feed import router as search_feed_router
 from core.routes.search.post import router as search_post_router
 from core.routes.search.request import router as search_request_router
 from core.routes.search.route import router as search_route_router
+from core.routes.geo import router as geocoder_router
 
 from executor.routes.auth import router as executor_auth_router
 from executor.routes.support import router as executor_support_router
@@ -27,6 +28,7 @@ from client.routes.auth import router as client_auth_router
 from client.routes.profile import router as client_profile_router
 from client.routes.support import router as client_support_router
 from client.routes.membership import router as client_membership_router
+from client.routes.request import router as client_request_router
 
 logging.basicConfig(
     level=logging.INFO,
@@ -116,6 +118,7 @@ app.add_middleware(
 )
 
 app.include_router(main_page_router, prefix="/api") # главная страница
+app.include_router(geocoder_router, prefix="/api") # геокодер
 
 app.include_router(search_feed_router, prefix="/api/search") # общая лента поиска: /api/search/feed
 app.include_router(search_request_router, prefix="/api/search") # поиск заявок: /api/search/requests
@@ -132,6 +135,7 @@ app.include_router(client_auth_router, prefix="/api/client") # авториза�
 app.include_router(client_profile_router, prefix="/api/client") # профиль клиентов: /api/client/profile/*
 app.include_router(client_support_router, prefix="/api/client") # саппорт клиентов: /api/client/account/support*
 app.include_router(client_membership_router, prefix="/api/client")  # тарифы и подписка клиента: /api/client/membership/*
+app.include_router(client_request_router, prefix="/api/client")  # заявки клиента (мои заказы): /api/client/orders/*
 
 # отдаём загруженный медиаконтент по /uploads/...
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")

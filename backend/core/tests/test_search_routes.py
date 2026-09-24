@@ -1,7 +1,5 @@
 """Проверяем роуты поиска: регистрацию, фильтры в OpenAPI и передачу параметров в сервисы."""
 
-import pytest
-
 from client.models.enums.request_statuses import CargoRequestStatus
 from core.models.enums.post_creator_type import PostCreatorType
 from core.routes.search.feed import get_feed

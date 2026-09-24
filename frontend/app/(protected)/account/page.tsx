@@ -16,7 +16,7 @@ import PersonalDataSection from '@/components/account/profile/personal-data-sect
 import NotificationsSection from '@/components/account/profile/notifications-section'
 import CompanyDetailsSection from '@/components/account/profile/company-details-section'
 
-import { profileSchema, type ProfileFormInput } from '@/schemas/account/profile/profileSchema'
+import { profileSchema, type ProfileFormInput } from '@/schemas/account/profileSchema'
 
 const ProfilePage = () => {
   const { client, setClient } = useClientStore()

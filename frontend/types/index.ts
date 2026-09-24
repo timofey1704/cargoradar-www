@@ -15,3 +15,11 @@ export type {
   CarrierSearchCardProps,
   OrganizationSearchCardProps,
 } from './search-card'
+export type { CargoRequestStatus, CargoRequest, CreateCargoRequest } from './cargo-request'
+export type {
+  Coordinates,
+  RoutePointValue,
+  GeoSearchResult,
+  GeoReverseResult,
+  RouteData,
+} from './geo'

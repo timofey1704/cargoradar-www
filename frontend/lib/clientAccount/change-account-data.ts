@@ -1,6 +1,6 @@
 import { apiRequest } from '@/lib/api'
 import type { Client } from '@/types'
-import type { ProfileFormOutput } from '@/schemas/account/profile/profileSchema'
+import type { ProfileFormOutput } from '@/schemas/account/profileSchema'
 
 function toBackendPayload(values: ProfileFormOutput) {
   const payload: Record<string, string | boolean | undefined> = {

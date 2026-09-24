@@ -13,6 +13,10 @@ from admin.models import *  # noqa: F401
 from core.models import *  # noqa: F401
 
 from core.routes.main_page import router as main_page_router
+from core.routes.search.feed import router as search_feed_router
+from core.routes.search.post import router as search_post_router
+from core.routes.search.request import router as search_request_router
+from core.routes.search.route import router as search_route_router
 
 from executor.routes.auth import router as executor_auth_router
 from executor.routes.support import router as executor_support_router
@@ -112,6 +116,11 @@ app.add_middleware(
 )
 
 app.include_router(main_page_router, prefix="/api") # главная страница
+
+app.include_router(search_feed_router, prefix="/api/search") # общая лента поиска: /api/search/feed
+app.include_router(search_request_router, prefix="/api/search") # поиск заявок: /api/search/requests
+app.include_router(search_post_router, prefix="/api/search") # поиск постов: /api/search/posts
+app.include_router(search_route_router, prefix="/api/search") # поиск маршрутов водителей: /api/search/routes
 
 
 app.include_router(executor_auth_router, prefix="/api/executor") # авторизация исполнителей: /api/executor/auth/*

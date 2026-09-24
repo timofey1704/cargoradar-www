@@ -3,6 +3,7 @@
 from datetime import date, datetime, timezone
 
 import pytest
+from fastapi import HTTPException
 
 from client.models.enums.request_statuses import CargoRequestStatus
 from client.models.request import CargoRequest
@@ -312,4 +313,25 @@ async def test_request_service_caches_by_filters(fake_redis):
         cache_key("search:request:feed:limit=20:skip=0:status=new"),
         cache_key("search:request:feed:cargo_type=Тент:limit=20:skip=0:status=new"),
     )
+
+
+
+async def test_request_service_rejects_incomplete_geo_filter():
+    """Часть гео-параметров без остальных — 400, и до репозитория дело не доходит."""
+    service, repository = _request_service([_request(1)])
+
+    with pytest.raises(HTTPException) as exc_info:
+        await service.get_feed(origin_lat=53.9, radius_km=50.0)
+
+    assert exc_info.value.status_code == 400
+    assert repository.feed_calls == 0
+
+
+async def test_request_service_accepts_full_geo_filter():
+    service, repository = _request_service([_request(1)])
+
+    page = await service.get_feed(origin_lat=53.9, origin_lon=27.56, radius_km=50.0)
+
+    assert repository.feed_calls == 1
+    assert page.has_more is False
 

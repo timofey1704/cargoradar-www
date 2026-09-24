@@ -1,5 +1,6 @@
 from datetime import date
 
+from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from client.models.enums.request_statuses import CargoRequestStatus
@@ -36,6 +37,7 @@ class CargoRequestService:
         и радиусу, поэтому про следующую страницу говорит `has_more`.
         Кешируем по набору фильтров — разные фильтры дают разные ключи.
         """
+        self._validate_geo_filter(origin_lat, origin_lon, radius_km)
         requests = await self.repository.get_feed(
             status=status,
             cargo_type=cargo_type,
@@ -53,6 +55,23 @@ class CargoRequestService:
             skip=skip,
             limit=limit,
         )
+
+    @staticmethod
+    def _validate_geo_filter(
+        origin_lat: float | None, origin_lon: float | None, radius_km: float | None
+    ) -> None:
+        """Радиус имеет смысл только с точкой: либо все три параметра, либо ни одного.
+
+        Иначе репозиторий молча проигнорировал бы радиус — лучше явная 400.
+        """
+        geo_params = (origin_lat, origin_lon, radius_km)
+        if any(param is not None for param in geo_params) and not all(
+            param is not None for param in geo_params
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Радиус поиска требует все три параметра: origin_lat, origin_lon и radius_km",
+            )
 
     @search_cached("search:request")
     async def get_by_client(

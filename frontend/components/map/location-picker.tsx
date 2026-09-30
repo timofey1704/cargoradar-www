@@ -2,9 +2,10 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { MapContainer, TileLayer, useMapEvents } from 'react-leaflet'
-import type { LatLngExpression } from 'leaflet'
+import { type LatLngExpression } from 'leaflet'
 
 import { MapMarker } from './map-marker'
+import { markerIcon } from './map-icons'
 
 import type { Coordinates } from '@/types/geo'
 
@@ -63,7 +64,9 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
 
         <MapClickHandler onChange={onChange} />
 
-        {markerPosition && <MapMarker position={markerPosition} onChange={onChange} />}
+        {markerPosition && (
+          <MapMarker position={markerPosition} icon={markerIcon} onChange={onChange} />
+        )}
       </MapContainer>
     </div>
   )

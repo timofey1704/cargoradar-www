@@ -5,7 +5,7 @@ import { FormProvider } from 'react-hook-form'
 import { FormInput } from '@/components/ui/form-input'
 import { FormSelect } from '@/components/ui/form-select'
 import { RoutePointInput } from './route-point-input'
-import { RouteMap } from '@/components/map/route-map'
+// import { RouteMap } from '@/components/map/route-map'
 import { Button } from '@/components/ui/button'
 
 import { useAppForm } from '@/hooks/use-app-form'
@@ -115,7 +115,7 @@ export default function CreateOrder({ onCreated }: CreateOrderProps) {
             <p className="mt-1 text-sm text-gray-500">Укажите точки отправления и назначения.</p>
           </div>
 
-          <div className="grid gap-6 lg:grid-cols-2">
+          <div className="grid gap-6">
             <div className="space-y-5">
               <RoutePointInput
                 label="Откуда"
@@ -142,9 +142,9 @@ export default function CreateOrder({ onCreated }: CreateOrderProps) {
               />
             </div>
 
-            <div className="lg:sticky lg:top-6 lg:self-start">
+            {/* <div className="lg:sticky lg:top-6 lg:self-start">
               <RouteMap origin={origin.location} destination={destination.location} />
-            </div>
+            </div> */}
           </div>
         </section>
 

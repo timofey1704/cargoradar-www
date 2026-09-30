@@ -1,7 +1,13 @@
-const markerIcon = new L.Icon({
-  iconUrl: '/images/map/marker.png',
-  iconRetinaUrl: '/images/map/marker@2x.png',
-  shadowUrl: '/images/map/marker-shadow.png',
+'use client'
+
+import { Icon } from 'leaflet'
+
+export const markerIcon = new Icon({
+  iconUrl: '/images/marker-icon.png',
+  iconRetinaUrl: '/images/marker-icon-2x.png',
+  shadowUrl: '/images/marker-shadow.png',
   iconSize: [25, 41],
   iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
 })

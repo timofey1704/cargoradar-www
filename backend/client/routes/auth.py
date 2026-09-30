@@ -1,10 +1,14 @@
-from fastapi import APIRouter, HTTPException, Request, Response, status
+import math
+
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from redis.exceptions import RedisError
 
 from core.cookies import (
     clear_client_auth_cookies,
     set_client_auth_cookies,
 )
 from core.dependencies import CurrentClient, DbSession
+from core.rate_limiter import rate_limiter
 from core.schemas.common_auth_credentials import CommonCredentialsFields
 from core.schemas.token import RefreshRequest, TokenResponse
 
@@ -17,7 +21,21 @@ from client.services import auth_service
 router = APIRouter(prefix="/auth", tags=["client auth"])
 
 
-@router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/register",
+    response_model=TokenResponse,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[
+        Depends(
+            rate_limiter.limit(
+                requests_per_second=0.1,
+                burst=5,
+                scope="client-register-ip",
+                fail_open=False,
+            )
+        )
+    ],
+)
 async def register(data: ClientRegister, db: DbSession, response: Response) -> TokenResponse:
     """Регистрация аккаунта клиента — сразу возвращает пару токенов."""
     result = await auth_service.register_client(data, db)
@@ -25,9 +43,46 @@ async def register(data: ClientRegister, db: DbSession, response: Response) -> T
     return result
 
 
-@router.post("/login", response_model=TokenResponse)
+@router.post(
+    "/login",
+    response_model=TokenResponse,
+    dependencies=[
+        Depends(
+            rate_limiter.limit(
+                requests_per_second=1,
+                burst=10,
+                scope="client-login-ip",
+                fail_open=False,
+            )
+        )
+    ],
+)
 async def login(data: CommonCredentialsFields, db: DbSession, response: Response) -> TokenResponse:
     """Вход по телефону и паролю."""
+    account_key = rate_limiter.build_key(
+        scope="client-login-account",
+        identifier=data.phone_number,
+    )
+    try:
+        allowed, retry_after = await rate_limiter.is_allowed(
+            key=account_key,
+            requests_per_second=0.02,
+            burst=5,
+        )
+    except RedisError as error:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Rate limiter unavailable",
+            headers={"Retry-After": "1"},
+        ) from error
+
+    if not allowed:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many requests",
+            headers={"Retry-After": str(max(1, math.ceil(retry_after)))},
+        )
+
     result = await auth_service.login_client(data, db)
     set_client_auth_cookies(response, result.access_token, result.refresh_token)
     return result

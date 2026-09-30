@@ -43,6 +43,7 @@ services:
       # redis внутри docker-сети доступен по имени сервиса
       REDIS_HOST: redis
       REDIS_PORT: "6379"
+      FORWARDED_ALLOW_IPS: ${FORWARDED_ALLOW_IPS:-127.0.0.1,::1}
 
     depends_on:
       postgres:

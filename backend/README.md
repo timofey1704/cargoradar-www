@@ -138,6 +138,13 @@ await redis_client.delete_cached_by_prefix(settings.cache_prefix)  # всё ср
 | `CACHE_PREFIX` | `cache:` | общий префикс ключей кеша |
 | `CACHE_TTL_FAQ` | `300` | TTL для FAQ главной |
 | `CACHE_TTL_MEMBERSHIP_PLANS` | `300` | TTL для каталога тарифов |
+| `FORWARDED_ALLOW_IPS` | `127.0.0.1,::1` | IP/CIDR доверенных reverse proxy для Uvicorn |
+
+Uvicorn обрабатывает proxy headers, но принимает их только от адресов из
+`FORWARDED_ALLOW_IPS`. При работе за nginx, Cloudflare Tunnel или балансировщиком
+задайте точный IP/CIDR доверенного proxy в `.env` рядом с `docker-compose.yml`;
+не используйте `*`, пока backend доступен напрямую. Proxy должен перезаписывать
+или корректно формировать `X-Forwarded-For`.
 
 Redis — ускоритель, а не источник правды: ошибки Redis и битый/устаревший кеш
 игнорируются, метод просто выполняется как обычно (тесты `core/tests/test_cache_decorator.py`).

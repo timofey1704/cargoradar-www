@@ -152,6 +152,7 @@ class RateLimiter:
         requests_per_second: float,
         burst: int,
         scope: str,
+        fail_open: bool,
     ) -> Callable[[Request], Awaitable[None]]:
         if requests_per_second <= 0:
             raise ValueError("requests_per_second must be greater than 0")
@@ -174,6 +175,8 @@ class RateLimiter:
                     burst=burst,
                 )
             except RedisError as error:
+                if fail_open:
+                    return
                 raise HTTPException(
                     status_code=503,
                     detail="Rate limiter unavailable",

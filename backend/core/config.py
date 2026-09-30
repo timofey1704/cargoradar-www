@@ -3,6 +3,12 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
+    
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        if len(self.secret_key.get_secret_value()) < 32:
+            raise ValueError("SECRET_KEY must be at least 32 characters long")
+        
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
     database_url: str = ""
@@ -44,10 +50,7 @@ class Settings(BaseSettings):
     nominatim_url: str = "https://nominatim.openstreetmap.org"
     nominatim_user_agent: str = "CargoRadar/1.0"
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        if len(self.secret_key.get_secret_value()) < 32:
-            raise ValueError("SECRET_KEY must be at least 32 characters long")
+
 
 
 settings = Settings()

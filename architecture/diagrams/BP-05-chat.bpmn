@@ -1,0 +1,527 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Defs_Chat" targetNamespace="https://example.com/bpmn/chat-architecture" exporter="Claude" exporterVersion="1.0">
+  <bpmn:collaboration id="Collab_Chat">
+    <bpmn:participant id="StoragePool" name="Файловое хранилище (S3 API)" processRef="StorageProcess" />
+    <bpmn:participant id="BrowserSenderPool" name="Браузер отправителя (Next.js)" processRef="BrowserSenderProcess" />
+    <bpmn:participant id="RestPool" name="FastAPI: REST API" processRef="RestProcess" />
+    <bpmn:participant id="DbPool" name="PostgreSQL (источник истины)" processRef="DbProcess" />
+    <bpmn:participant id="RedisPool" name="Redis Pub/Sub" processRef="RedisProcess" />
+    <bpmn:participant id="WsHubPool" name="FastAPI: WebSocket-хаб (подписчик Redis)" processRef="WsHubProcess" />
+    <bpmn:participant id="BrowserReceiverPool" name="Браузер получателя (Next.js)" processRef="BrowserReceiverProcess" />
+    <bpmn:messageFlow id="MF_upload" name="POST /attachments" sourceRef="BS_reqUpload" targetRef="R_start1" />
+    <bpmn:messageFlow id="MF_saveAtt" name="INSERT attachment" sourceRef="R_prep" targetRef="D_startA" />
+    <bpmn:messageFlow id="MF_url" name="presigned URL" sourceRef="R_sendUrl" targetRef="BS_urlRecv" />
+    <bpmn:messageFlow id="MF_put" name="PUT файла" sourceRef="BS_put" targetRef="S_start" />
+    <bpmn:messageFlow id="MF_post" name="POST /messages" sourceRef="BS_send" targetRef="R_start2" />
+    <bpmn:messageFlow id="MF_saveMsg" name="INSERT message" sourceRef="R_saveMsg" targetRef="D_startB" />
+    <bpmn:messageFlow id="MF_commit" name="commit ok" sourceRef="D_ack" targetRef="R_commitRecv" />
+    <bpmn:messageFlow id="MF_publish" name="PUBLISH user:id" sourceRef="R_publish" targetRef="X_start" />
+    <bpmn:messageFlow id="MF_fanout" name="событие канала" sourceRef="X_send" targetRef="H_start" />
+    <bpmn:messageFlow id="MF_ws" name="WS: message.created" sourceRef="H_send" targetRef="BR_start" />
+  </bpmn:collaboration>
+  <bpmn:process id="StorageProcess" isExecutable="false">
+    <bpmn:startEvent id="S_start" name="PUT файла">
+      <bpmn:outgoing>S1</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="Msg_S_start" />
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="S_store" name="Проверить подпись URL, сохранить объект">
+      <bpmn:incoming>S1</bpmn:incoming>
+      <bpmn:outgoing>S2</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="S_end" name="Файл сохранён">
+      <bpmn:incoming>S2</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="S1" sourceRef="S_start" targetRef="S_store" />
+    <bpmn:sequenceFlow id="S2" sourceRef="S_store" targetRef="S_end" />
+  </bpmn:process>
+  <bpmn:process id="BrowserSenderProcess" isExecutable="false">
+    <bpmn:startEvent id="BS_start" name="Новое сообщение">
+      <bpmn:outgoing>BS1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:exclusiveGateway id="BS_gate" name="Есть вложение?">
+      <bpmn:incoming>BS1</bpmn:incoming>
+      <bpmn:outgoing>BS2</bpmn:outgoing>
+      <bpmn:outgoing>BS7</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sendTask id="BS_reqUpload" name="Запросить загрузку: POST /attachments">
+      <bpmn:incoming>BS2</bpmn:incoming>
+      <bpmn:outgoing>BS3</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:intermediateCatchEvent id="BS_urlRecv" name="Получен presigned URL">
+      <bpmn:incoming>BS3</bpmn:incoming>
+      <bpmn:outgoing>BS4</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="Msg_BS_urlRecv" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:sendTask id="BS_put" name="Загрузить файл по presigned URL (PUT)">
+      <bpmn:documentation>Файл уходит напрямую в хранилище, минуя FastAPI. Нужна CORS-настройка бакета для origin сайта.</bpmn:documentation>
+      <bpmn:incoming>BS4</bpmn:incoming>
+      <bpmn:outgoing>BS5</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:sendTask id="BS_send" name="Отправить сообщение: POST /messages">
+      <bpmn:incoming>BS5</bpmn:incoming>
+      <bpmn:incoming>BS7</bpmn:incoming>
+      <bpmn:outgoing>BS6</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:endEvent id="BS_end" name="Сообщение отправлено">
+      <bpmn:incoming>BS6</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="BS1" sourceRef="BS_start" targetRef="BS_gate" />
+    <bpmn:sequenceFlow id="BS2" name="Да" sourceRef="BS_gate" targetRef="BS_reqUpload" />
+    <bpmn:sequenceFlow id="BS3" sourceRef="BS_reqUpload" targetRef="BS_urlRecv" />
+    <bpmn:sequenceFlow id="BS4" sourceRef="BS_urlRecv" targetRef="BS_put" />
+    <bpmn:sequenceFlow id="BS5" sourceRef="BS_put" targetRef="BS_send" />
+    <bpmn:sequenceFlow id="BS6" sourceRef="BS_send" targetRef="BS_end" />
+    <bpmn:sequenceFlow id="BS7" name="Нет" sourceRef="BS_gate" targetRef="BS_send" />
+  </bpmn:process>
+  <bpmn:process id="RestProcess" isExecutable="false">
+    <bpmn:startEvent id="R_start1" name="Запрос на загрузку">
+      <bpmn:outgoing>R1</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="Msg_R_start1" />
+    </bpmn:startEvent>
+    <bpmn:sendTask id="R_prep" name="Проверить тип и размер, сохранить Attachment">
+      <bpmn:documentation>Белый список content_type и лимит размера. Запись Attachment без message_id.</bpmn:documentation>
+      <bpmn:incoming>R1</bpmn:incoming>
+      <bpmn:outgoing>R2</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:sendTask id="R_sendUrl" name="Выдать presigned URL">
+      <bpmn:documentation>Короткий TTL, ключ объекта генерируется на сервере.</bpmn:documentation>
+      <bpmn:incoming>R2</bpmn:incoming>
+      <bpmn:outgoing>R3</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:endEvent id="R_end1" name="Завершено">
+      <bpmn:incoming>R3</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:startEvent id="R_start2" name="POST /messages">
+      <bpmn:outgoing>R4</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="Msg_R_start2" />
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="R_check" name="Проверить права и client_id">
+      <bpmn:incoming>R4</bpmn:incoming>
+      <bpmn:outgoing>R5</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sendTask id="R_saveMsg" name="Сохранить сообщение">
+      <bpmn:incoming>R5</bpmn:incoming>
+      <bpmn:outgoing>R6</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:intermediateCatchEvent id="R_commitRecv" name="Commit выполнен">
+      <bpmn:incoming>R6</bpmn:incoming>
+      <bpmn:outgoing>R7</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="Msg_R_commitRecv" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:sendTask id="R_publish" name="Опубликовать message.created в канал user:id">
+      <bpmn:documentation>Публикация строго ПОСЛЕ commit. Канал каждого участника беседы.</bpmn:documentation>
+      <bpmn:incoming>R7</bpmn:incoming>
+      <bpmn:outgoing>R8</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:endEvent id="R_end2" name="Завершено">
+      <bpmn:incoming>R8</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="R1" sourceRef="R_start1" targetRef="R_prep" />
+    <bpmn:sequenceFlow id="R2" sourceRef="R_prep" targetRef="R_sendUrl" />
+    <bpmn:sequenceFlow id="R3" sourceRef="R_sendUrl" targetRef="R_end1" />
+    <bpmn:sequenceFlow id="R4" sourceRef="R_start2" targetRef="R_check" />
+    <bpmn:sequenceFlow id="R5" sourceRef="R_check" targetRef="R_saveMsg" />
+    <bpmn:sequenceFlow id="R6" sourceRef="R_saveMsg" targetRef="R_commitRecv" />
+    <bpmn:sequenceFlow id="R7" sourceRef="R_commitRecv" targetRef="R_publish" />
+    <bpmn:sequenceFlow id="R8" sourceRef="R_publish" targetRef="R_end2" />
+  </bpmn:process>
+  <bpmn:process id="DbProcess" isExecutable="false">
+    <bpmn:startEvent id="D_startA" name="Запись вложения">
+      <bpmn:outgoing>D1</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="Msg_D_startA" />
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="D_insA" name="INSERT attachments (без message_id)">
+      <bpmn:incoming>D1</bpmn:incoming>
+      <bpmn:outgoing>D2</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="D_endA" name="Завершено">
+      <bpmn:incoming>D2</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:startEvent id="D_startB" name="Запись сообщения">
+      <bpmn:outgoing>D3</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="Msg_D_startB" />
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="D_insM" name="INSERT messages, привязать вложения, COMMIT">
+      <bpmn:documentation>UNIQUE (conversation_id, sender_id, client_id) защищает от дублей при ретраях.</bpmn:documentation>
+      <bpmn:incoming>D3</bpmn:incoming>
+      <bpmn:outgoing>D4</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sendTask id="D_ack" name="Подтвердить commit">
+      <bpmn:incoming>D4</bpmn:incoming>
+      <bpmn:outgoing>D5</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:endEvent id="D_endB" name="Завершено">
+      <bpmn:incoming>D5</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="D1" sourceRef="D_startA" targetRef="D_insA" />
+    <bpmn:sequenceFlow id="D2" sourceRef="D_insA" targetRef="D_endA" />
+    <bpmn:sequenceFlow id="D3" sourceRef="D_startB" targetRef="D_insM" />
+    <bpmn:sequenceFlow id="D4" sourceRef="D_insM" targetRef="D_ack" />
+    <bpmn:sequenceFlow id="D5" sourceRef="D_ack" targetRef="D_endB" />
+  </bpmn:process>
+  <bpmn:process id="RedisProcess" isExecutable="false">
+    <bpmn:startEvent id="X_start" name="PUBLISH user:id">
+      <bpmn:outgoing>X1</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="Msg_X_start" />
+    </bpmn:startEvent>
+    <bpmn:sendTask id="X_send" name="Разослать подписчикам канала">
+      <bpmn:incoming>X1</bpmn:incoming>
+      <bpmn:outgoing>X2</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:endEvent id="X_end" name="Завершено">
+      <bpmn:incoming>X2</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="X1" sourceRef="X_start" targetRef="X_send" />
+    <bpmn:sequenceFlow id="X2" sourceRef="X_send" targetRef="X_end" />
+  </bpmn:process>
+  <bpmn:process id="WsHubProcess" isExecutable="false">
+    <bpmn:startEvent id="H_start" name="Событие из подписки">
+      <bpmn:outgoing>H1</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="Msg_H_start" />
+    </bpmn:startEvent>
+    <bpmn:sendTask id="H_send" name="Отправить event по WebSocket подключённым сокетам">
+      <bpmn:incoming>H1</bpmn:incoming>
+      <bpmn:outgoing>H2</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:endEvent id="H_end" name="Завершено">
+      <bpmn:incoming>H2</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="H1" sourceRef="H_start" targetRef="H_send" />
+    <bpmn:sequenceFlow id="H2" sourceRef="H_send" targetRef="H_end" />
+  </bpmn:process>
+  <bpmn:process id="BrowserReceiverProcess" isExecutable="false">
+    <bpmn:startEvent id="BR_start" name="WS: message.created">
+      <bpmn:outgoing>BR1</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="Msg_BR_start" />
+    </bpmn:startEvent>
+    <bpmn:task id="BR_show" name="Дедупликация по id, обновить кэш и UI">
+      <bpmn:incoming>BR1</bpmn:incoming>
+      <bpmn:outgoing>BR2</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="BR_end" name="Сообщение показано">
+      <bpmn:incoming>BR2</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="BR1" sourceRef="BR_start" targetRef="BR_show" />
+    <bpmn:sequenceFlow id="BR2" sourceRef="BR_show" targetRef="BR_end" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_Chat">
+    <bpmndi:BPMNPlane id="Plane_Chat" bpmnElement="Collab_Chat">
+      <bpmndi:BPMNShape id="StoragePool_di" bpmnElement="StoragePool" isHorizontal="true">
+        <dc:Bounds x="160" y="60" width="2290" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_start_di" bpmnElement="S_start">
+        <dc:Bounds x="882" y="117" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="869" y="95" width="62" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_store_di" bpmnElement="S_store">
+        <dc:Bounds x="965" y="95" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S_end_di" bpmnElement="S_end">
+        <dc:Bounds x="1142" y="117" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1117" y="154" width="86" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="S1_di" bpmnElement="S1">
+        <di:waypoint x="918" y="135" />
+        <di:waypoint x="965" y="135" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="S2_di" bpmnElement="S2">
+        <di:waypoint x="1095" y="135" />
+        <di:waypoint x="1142" y="135" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="BrowserSenderPool_di" bpmnElement="BrowserSenderPool" isHorizontal="true">
+        <dc:Bounds x="160" y="250" width="2290" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BS_start_di" bpmnElement="BS_start">
+        <dc:Bounds x="222" y="307" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="195" y="285" width="90" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BS_gate_di" bpmnElement="BS_gate" isMarkerVisible="true">
+        <dc:Bounds x="295" y="300" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="275" y="352" width="90" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BS_reqUpload_di" bpmnElement="BS_reqUpload">
+        <dc:Bounds x="385" y="285" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BS_urlRecv_di" bpmnElement="BS_urlRecv">
+        <dc:Bounds x="752" y="307" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="725" y="271" width="90" height="28" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BS_put_di" bpmnElement="BS_put">
+        <dc:Bounds x="835" y="285" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BS_send_di" bpmnElement="BS_send">
+        <dc:Bounds x="1005" y="285" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BS_end_di" bpmnElement="BS_end">
+        <dc:Bounds x="1172" y="307" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1145" y="344" width="90" height="28" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BS1_di" bpmnElement="BS1">
+        <di:waypoint x="258" y="325" />
+        <di:waypoint x="295" y="325" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BS2_di" bpmnElement="BS2">
+        <di:waypoint x="345" y="325" />
+        <di:waypoint x="385" y="325" />
+        <bpmndi:BPMNLabel><dc:Bounds x="353" y="307" width="25" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BS3_di" bpmnElement="BS3">
+        <di:waypoint x="515" y="325" />
+        <di:waypoint x="752" y="325" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BS4_di" bpmnElement="BS4">
+        <di:waypoint x="788" y="325" />
+        <di:waypoint x="835" y="325" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BS5_di" bpmnElement="BS5">
+        <di:waypoint x="965" y="325" />
+        <di:waypoint x="1005" y="325" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BS6_di" bpmnElement="BS6">
+        <di:waypoint x="1135" y="325" />
+        <di:waypoint x="1172" y="325" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BS7_di" bpmnElement="BS7">
+        <di:waypoint x="320" y="300" />
+        <di:waypoint x="320" y="262" />
+        <di:waypoint x="1070" y="262" />
+        <di:waypoint x="1070" y="285" />
+        <bpmndi:BPMNLabel><dc:Bounds x="326" y="275" width="30" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="RestPool_di" bpmnElement="RestPool" isHorizontal="true">
+        <dc:Bounds x="160" y="440" width="2290" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="R_start1_di" bpmnElement="R_start1">
+        <dc:Bounds x="432" y="497" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="405" y="534" width="90" height="28" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="R_prep_di" bpmnElement="R_prep">
+        <dc:Bounds x="535" y="475" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="R_sendUrl_di" bpmnElement="R_sendUrl">
+        <dc:Bounds x="705" y="475" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="R_end1_di" bpmnElement="R_end1">
+        <dc:Bounds x="872" y="497" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="859" y="534" width="62" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="R_start2_di" bpmnElement="R_start2">
+        <dc:Bounds x="1052" y="497" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1025" y="534" width="90" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="R_check_di" bpmnElement="R_check">
+        <dc:Bounds x="1135" y="475" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="R_saveMsg_di" bpmnElement="R_saveMsg">
+        <dc:Bounds x="1305" y="475" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="R_commitRecv_di" bpmnElement="R_commitRecv">
+        <dc:Bounds x="1662" y="497" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1635" y="475" width="90" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="R_publish_di" bpmnElement="R_publish">
+        <dc:Bounds x="1795" y="475" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="R_end2_di" bpmnElement="R_end2">
+        <dc:Bounds x="1957" y="497" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1944" y="534" width="62" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="R1_di" bpmnElement="R1">
+        <di:waypoint x="468" y="515" />
+        <di:waypoint x="535" y="515" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="R2_di" bpmnElement="R2">
+        <di:waypoint x="665" y="515" />
+        <di:waypoint x="705" y="515" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="R3_di" bpmnElement="R3">
+        <di:waypoint x="835" y="515" />
+        <di:waypoint x="872" y="515" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="R4_di" bpmnElement="R4">
+        <di:waypoint x="1088" y="515" />
+        <di:waypoint x="1135" y="515" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="R5_di" bpmnElement="R5">
+        <di:waypoint x="1265" y="515" />
+        <di:waypoint x="1305" y="515" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="R6_di" bpmnElement="R6">
+        <di:waypoint x="1435" y="515" />
+        <di:waypoint x="1662" y="515" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="R7_di" bpmnElement="R7">
+        <di:waypoint x="1698" y="515" />
+        <di:waypoint x="1795" y="515" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="R8_di" bpmnElement="R8">
+        <di:waypoint x="1925" y="515" />
+        <di:waypoint x="1957" y="515" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="DbPool_di" bpmnElement="DbPool" isHorizontal="true">
+        <dc:Bounds x="160" y="630" width="2290" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="D_startA_di" bpmnElement="D_startA">
+        <dc:Bounds x="582" y="687" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="555" y="724" width="90" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="D_insA_di" bpmnElement="D_insA">
+        <dc:Bounds x="675" y="665" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="D_endA_di" bpmnElement="D_endA">
+        <dc:Bounds x="842" y="687" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="829" y="724" width="62" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="D_startB_di" bpmnElement="D_startB">
+        <dc:Bounds x="1352" y="687" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1325" y="724" width="90" height="28" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="D_insM_di" bpmnElement="D_insM">
+        <dc:Bounds x="1430" y="665" width="140" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="D_ack_di" bpmnElement="D_ack">
+        <dc:Bounds x="1625" y="665" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="D_endB_di" bpmnElement="D_endB">
+        <dc:Bounds x="1772" y="687" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1759" y="724" width="62" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="D1_di" bpmnElement="D1">
+        <di:waypoint x="618" y="705" />
+        <di:waypoint x="675" y="705" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="D2_di" bpmnElement="D2">
+        <di:waypoint x="805" y="705" />
+        <di:waypoint x="842" y="705" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="D3_di" bpmnElement="D3">
+        <di:waypoint x="1388" y="705" />
+        <di:waypoint x="1430" y="705" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="D4_di" bpmnElement="D4">
+        <di:waypoint x="1570" y="705" />
+        <di:waypoint x="1625" y="705" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="D5_di" bpmnElement="D5">
+        <di:waypoint x="1735" y="705" />
+        <di:waypoint x="1772" y="705" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="RedisPool_di" bpmnElement="RedisPool" isHorizontal="true">
+        <dc:Bounds x="160" y="820" width="2290" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="X_start_di" bpmnElement="X_start">
+        <dc:Bounds x="1842" y="877" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1815" y="914" width="90" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="X_send_di" bpmnElement="X_send">
+        <dc:Bounds x="1925" y="855" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="X_end_di" bpmnElement="X_end">
+        <dc:Bounds x="2092" y="877" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="2079" y="914" width="62" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="X1_di" bpmnElement="X1">
+        <di:waypoint x="1878" y="895" />
+        <di:waypoint x="1925" y="895" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="X2_di" bpmnElement="X2">
+        <di:waypoint x="2055" y="895" />
+        <di:waypoint x="2092" y="895" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="WsHubPool_di" bpmnElement="WsHubPool" isHorizontal="true">
+        <dc:Bounds x="160" y="1010" width="2290" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="H_start_di" bpmnElement="H_start">
+        <dc:Bounds x="1972" y="1067" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1945" y="1104" width="90" height="28" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="H_send_di" bpmnElement="H_send">
+        <dc:Bounds x="2050" y="1045" width="140" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="H_end_di" bpmnElement="H_end">
+        <dc:Bounds x="2222" y="1067" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="2209" y="1104" width="62" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="H1_di" bpmnElement="H1">
+        <di:waypoint x="2008" y="1085" />
+        <di:waypoint x="2050" y="1085" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="H2_di" bpmnElement="H2">
+        <di:waypoint x="2190" y="1085" />
+        <di:waypoint x="2222" y="1085" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="BrowserReceiverPool_di" bpmnElement="BrowserReceiverPool" isHorizontal="true">
+        <dc:Bounds x="160" y="1200" width="2290" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BR_start_di" bpmnElement="BR_start">
+        <dc:Bounds x="2102" y="1257" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="2075" y="1294" width="90" height="28" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BR_show_di" bpmnElement="BR_show">
+        <dc:Bounds x="2185" y="1235" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BR_end_di" bpmnElement="BR_end">
+        <dc:Bounds x="2352" y="1257" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="2325" y="1294" width="90" height="28" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BR1_di" bpmnElement="BR1">
+        <di:waypoint x="2138" y="1275" />
+        <di:waypoint x="2185" y="1275" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BR2_di" bpmnElement="BR2">
+        <di:waypoint x="2315" y="1275" />
+        <di:waypoint x="2352" y="1275" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MF_upload_di" bpmnElement="MF_upload">
+        <di:waypoint x="450" y="365" />
+        <di:waypoint x="450" y="497" />
+        <bpmndi:BPMNLabel><dc:Bounds x="456" y="413" width="110" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MF_saveAtt_di" bpmnElement="MF_saveAtt">
+        <di:waypoint x="600" y="555" />
+        <di:waypoint x="600" y="687" />
+        <bpmndi:BPMNLabel><dc:Bounds x="606" y="603" width="110" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MF_url_di" bpmnElement="MF_url">
+        <di:waypoint x="770" y="475" />
+        <di:waypoint x="770" y="343" />
+        <bpmndi:BPMNLabel><dc:Bounds x="776" y="413" width="86" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MF_put_di" bpmnElement="MF_put">
+        <di:waypoint x="900" y="285" />
+        <di:waypoint x="900" y="153" />
+        <bpmndi:BPMNLabel><dc:Bounds x="906" y="223" width="62" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MF_post_di" bpmnElement="MF_post">
+        <di:waypoint x="1070" y="365" />
+        <di:waypoint x="1070" y="497" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1076" y="413" width="92" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MF_saveMsg_di" bpmnElement="MF_saveMsg">
+        <di:waypoint x="1370" y="555" />
+        <di:waypoint x="1370" y="687" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1376" y="603" width="92" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MF_commit_di" bpmnElement="MF_commit">
+        <di:waypoint x="1680" y="665" />
+        <di:waypoint x="1680" y="533" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1686" y="603" width="62" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MF_publish_di" bpmnElement="MF_publish">
+        <di:waypoint x="1860" y="555" />
+        <di:waypoint x="1860" y="877" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1866" y="603" width="98" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MF_fanout_di" bpmnElement="MF_fanout">
+        <di:waypoint x="1990" y="935" />
+        <di:waypoint x="1990" y="1067" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1996" y="983" width="92" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MF_ws_di" bpmnElement="MF_ws">
+        <di:waypoint x="2120" y="1125" />
+        <di:waypoint x="2120" y="1257" />
+        <bpmndi:BPMNLabel><dc:Bounds x="2126" y="1173" width="122" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

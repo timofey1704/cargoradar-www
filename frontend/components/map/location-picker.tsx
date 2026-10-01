@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
-import { MapContainer, TileLayer, useMapEvents } from 'react-leaflet'
+import { useEffect, useMemo } from 'react'
+import { MapContainer, TileLayer, useMap, useMapEvents } from 'react-leaflet'
 import { type LatLngExpression } from 'leaflet'
 
 import { MapMarker } from './map-marker'
@@ -17,6 +17,24 @@ interface LocationPickerProps {
 const DEFAULT_CENTER: LatLngExpression = [53.9023, 27.5619]
 
 const DEFAULT_ZOOM = 12
+
+interface MapControllerProps {
+  value: Coordinates | null
+}
+
+function MapController({ value }: MapControllerProps) {
+  const map = useMap()
+
+  useEffect(() => {
+    if (!value) {
+      return
+    }
+
+    map.flyTo([value.latitude, value.longitude], map.getZoom())
+  }, [map, value])
+
+  return null
+}
 
 interface MapClickHandlerProps {
   onChange: (value: Coordinates) => void
@@ -36,16 +54,6 @@ function MapClickHandler({ onChange }: MapClickHandlerProps) {
 }
 
 export function LocationPicker({ value, onChange }: LocationPickerProps) {
-  const [center, setCenter] = useState<LatLngExpression>(DEFAULT_CENTER)
-
-  useEffect(() => {
-    if (!value) {
-      return
-    }
-
-    setCenter([value.latitude, value.longitude])
-  }, [value])
-
   const markerPosition = useMemo<LatLngExpression | null>(() => {
     if (!value) {
       return null
@@ -56,12 +64,18 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
 
   return (
     <div className="h-80 overflow-hidden rounded-xl border border-gray-200">
-      <MapContainer center={center} zoom={DEFAULT_ZOOM} className="h-full w-full" scrollWheelZoom>
+      <MapContainer
+        center={DEFAULT_CENTER}
+        zoom={DEFAULT_ZOOM}
+        className="h-full w-full"
+        scrollWheelZoom
+      >
         <TileLayer
           attribution="&copy; OpenStreetMap contributors"
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
+        <MapController value={value} />
         <MapClickHandler onChange={onChange} />
 
         {markerPosition && (
@@ -71,6 +85,3 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
     </div>
   )
 }
-
-// TODO
-//setCenter() не меняет центр уже созданного Leaflet map. поэтому для production-компонента нужно добавить отдельный MapController, который делает map.flyTo() при выборе результата геокодинга

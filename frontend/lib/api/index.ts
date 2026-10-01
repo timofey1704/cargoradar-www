@@ -17,6 +17,7 @@ export interface ApiRequestOptions {
   /** Передаётся в JSON-теле. `undefined`/опущен — тело не отправляем. */
   body?: unknown
   headers?: Record<string, string>
+  signal?: AbortSignal
   /** Перевыпускать токены при 401 и пробовать ещё раз. По умолчанию true. */
   retryOnUnauthorized?: boolean
 }
@@ -77,6 +78,7 @@ export async function apiRequest<T = unknown>(
     body,
     headers = {},
     retryOnUnauthorized = true,
+    signal,
   }: ApiRequestOptions = {}
 ): Promise<T> {
   const url = `${process.env.NEXT_PUBLIC_API_URL}${path}`
@@ -90,6 +92,7 @@ export async function apiRequest<T = unknown>(
         ...headers,
       },
       body: body !== undefined ? JSON.stringify(body) : undefined,
+      signal,
     })
 
   let response = await send()

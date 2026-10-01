@@ -22,6 +22,12 @@ export function RoutePointInput({ label, value, onChange }: RoutePointInputProps
   const [isSearching, setIsSearching] = useState(false)
 
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const searchController = useRef<AbortController | null>(null)
+
+  useEffect(() => () => {
+    if (searchTimeout.current) clearTimeout(searchTimeout.current)
+    searchController.current?.abort()
+  }, [])
 
   useEffect(() => {
     setQuery(value.address)
@@ -33,6 +39,9 @@ export function RoutePointInput({ label, value, onChange }: RoutePointInputProps
     if (searchTimeout.current) {
       clearTimeout(searchTimeout.current)
     }
+    searchController.current?.abort()
+    searchController.current = null
+    setIsSearching(false)
 
     if (nextQuery.trim().length < 2) {
       setResults([])
@@ -40,16 +49,21 @@ export function RoutePointInput({ label, value, onChange }: RoutePointInputProps
     }
 
     searchTimeout.current = setTimeout(async () => {
+      const controller = new AbortController()
+      searchController.current = controller
       try {
         setIsSearching(true)
 
         const data = await searchGeo({
           query: nextQuery.trim(),
+          signal: controller.signal,
         })
 
-        setResults(data)
+        if (!controller.signal.aborted) setResults(data)
+      } catch (error) {
+        if (!(error instanceof DOMException && error.name === 'AbortError')) setResults([])
       } finally {
-        setIsSearching(false)
+        if (searchController.current === controller) setIsSearching(false)
       }
     }, 400)
   }
@@ -186,21 +200,3 @@ export function RoutePointInput({ label, value, onChange }: RoutePointInputProps
     </div>
   )
 }
-
-//todo
-
-// запрос "Мин"
-//        ↓
-// 400 ms
-//        ↓
-// request 1
-
-// "Минск"
-//        ↓
-// 400 ms
-//        ↓
-// request 2
-
-// Request 1 может вернуться после request 2 и перезаписать результаты.
-// Поэтому нужно добавить AbortController.
-// Ещё лучше — вынести поиск в React Query с debounce.

@@ -5,6 +5,14 @@ import type { GeoReverseResult, GeoSearchResult, RouteData } from '@/types/geo'
 interface SearchGeoParams {
   query: string
   limit?: number
+  signal?: AbortSignal
+}
+
+interface SearchGeoResponse {
+  place_id: string
+  display_name: string
+  latitude: number
+  longitude: number
 }
 
 interface ReverseGeoParams {
@@ -24,13 +32,22 @@ interface GetRouteParams {
   }
 }
 
-export const searchGeo = ({ query, limit = 5 }: SearchGeoParams) => {
+export const searchGeo = async ({ query, limit = 5, signal }: SearchGeoParams) => {
   const params = new URLSearchParams({
     q: query,
     limit: String(limit),
   })
 
-  return apiRequest<GeoSearchResult[]>(`/geo/search?${params.toString()}`)
+  const results = await apiRequest<SearchGeoResponse[]>(`/geo/search?${params.toString()}`, {
+    signal,
+  })
+
+  return results.map(({ place_id, display_name, latitude, longitude }): GeoSearchResult => ({
+    placeId: place_id,
+    displayName: display_name,
+    latitude,
+    longitude,
+  }))
 }
 
 export const reverseGeo = ({ latitude, longitude }: ReverseGeoParams) => {

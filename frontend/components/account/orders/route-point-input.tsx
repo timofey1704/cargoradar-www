@@ -16,7 +16,6 @@ interface RoutePointInputProps {
 }
 
 export function RoutePointInput({ label, value, onChange }: RoutePointInputProps) {
-  const [query, setQuery] = useState(value.address)
   const [results, setResults] = useState<GeoSearchResult[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [isSearching, setIsSearching] = useState(false)
@@ -24,17 +23,19 @@ export function RoutePointInput({ label, value, onChange }: RoutePointInputProps
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
   const searchController = useRef<AbortController | null>(null)
 
-  useEffect(() => () => {
-    if (searchTimeout.current) clearTimeout(searchTimeout.current)
-    searchController.current?.abort()
-  }, [])
-
-  useEffect(() => {
-    setQuery(value.address)
-  }, [value.address])
+  useEffect(
+    () => () => {
+      if (searchTimeout.current) clearTimeout(searchTimeout.current)
+      searchController.current?.abort()
+    },
+    []
+  )
 
   const handleSearch = (nextQuery: string) => {
-    setQuery(nextQuery)
+    onChange({
+      address: nextQuery,
+      location: null,
+    })
 
     if (searchTimeout.current) {
       clearTimeout(searchTimeout.current)
@@ -77,7 +78,6 @@ export function RoutePointInput({ label, value, onChange }: RoutePointInputProps
       },
     }
 
-    setQuery(result.displayName)
     setResults([])
     onChange(nextValue)
   }
@@ -112,10 +112,8 @@ export function RoutePointInput({ label, value, onChange }: RoutePointInputProps
           longitude: result.longitude,
         },
       })
-
-      setQuery(result.address)
     } catch {
-      setQuery('')
+      return
     } finally {
       setIsLoading(false)
     }
@@ -133,7 +131,7 @@ export function RoutePointInput({ label, value, onChange }: RoutePointInputProps
           />
 
           <input
-            value={query}
+            value={value.address}
             onChange={event => handleSearch(event.target.value)}
             placeholder="Введите адрес"
             className={[
@@ -175,7 +173,7 @@ export function RoutePointInput({ label, value, onChange }: RoutePointInputProps
         </div>
       </div>
 
-      <div className="relative">
+      <div className="relative z-0">
         <LocationPicker value={value.location} onChange={handleMapChange} />
 
         {isLoading && (

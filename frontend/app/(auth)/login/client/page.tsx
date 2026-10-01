@@ -11,9 +11,11 @@ import { useLogin } from '@/hooks/use-login'
 import { clientLogin } from '@/lib/auth/login'
 import { loginSchema, type LoginFormInput } from '@/schemas/auth/login/loginSchema'
 import { Button } from '@/components/ui/button'
+import useClientStore from '@/store/clientStore'
 
 export default function LoginPage() {
   const router = useRouter()
+  const setAuthChecked = useClientStore(state => state.setAuthChecked)
   const { form, isVisible, togglePasswordVisibility } = useAppForm({
     schema: loginSchema,
     defaultValues: {
@@ -27,6 +29,7 @@ export default function LoginPage() {
   const handleLogin = form.handleSubmit(values => {
     login(values, {
       onSuccess: () => {
+        setAuthChecked(false)
         router.push('/account')
       },
     })

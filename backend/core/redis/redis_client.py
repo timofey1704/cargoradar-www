@@ -23,7 +23,7 @@ class RedisClient:
     """
 
     def __init__(self) -> None:
-        # повторы мгновенные (NoBackoff), их количество — settings.redis_retry_count
+        # повторы мгновенные , их количество — settings.redis_retry_count
         self.redis: aioredis.Redis = aioredis.Redis(
             host=settings.redis_host,
             port=settings.redis_port,

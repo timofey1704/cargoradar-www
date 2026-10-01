@@ -11,9 +11,11 @@ import { loginSchema, type LoginFormInput } from '@/schemas/auth/login/loginSche
 import { executorLogin } from '@/lib/auth/login'
 import { useLogin } from '@/hooks/use-login'
 import { Button } from '@/components/ui/button'
+import useExecutorStore from '@/store/executorStore'
 
 export default function ExecutorLoginPage() {
   const router = useRouter()
+  const setAuthChecked = useExecutorStore(state => state.setAuthChecked)
   const { form, isVisible, togglePasswordVisibility } = useAppForm({
     schema: loginSchema,
     defaultValues: {
@@ -27,6 +29,7 @@ export default function ExecutorLoginPage() {
   const handleLogin = form.handleSubmit(values => {
     login(values, {
       onSuccess: () => {
+        setAuthChecked(false)
         router.push('/executor')
       },
     })

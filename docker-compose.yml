@@ -40,7 +40,7 @@ services:
       OSRM_URL: http://osrm:5000
       DATABASE_URL: postgresql+asyncpg://admin:${POSTGRES_PASSWORD}@postgres:5432/cargoradardb
 
-      # redis внутри docker-сети доступен по имени сервиса
+      # redis внутри docker сети доступен по имени сервиса
       REDIS_HOST: redis
       REDIS_PORT: "6379"
       FORWARDED_ALLOW_IPS: ${FORWARDED_ALLOW_IPS:-127.0.0.1,::1}
@@ -135,7 +135,7 @@ services:
         fi
         exec osrm-routed --algorithm mld --max-table-size 10000 /data/region.osrm
     ports:
-      # на хосте 5001, потому что 5000 на macOS занимает AirPlay Receiver
+      # на хосте 5001, потому что 5000 на макоси занимает AirPlay Receiver
       - "5001:5000"
     healthcheck:
       # в образе нет wget/curl, поэтому HTTP проверяем bash-скриптом через /dev/tcp

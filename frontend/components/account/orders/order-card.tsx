@@ -1,9 +1,11 @@
-import { ArrowRight, CalendarDays, MapPin, Package, Truck } from 'lucide-react'
-import Link from 'next/link'
+'use client'
 
-import type { ReactNode } from 'react'
+import { ArrowRight, CalendarDays, MapPin, Package, Truck } from 'lucide-react'
+import { useState } from 'react'
 
 import type { CargoRequest } from '@/types'
+import OrderPopup from './order-popup'
+import InfoItem from './info-item'
 
 interface OrderCardProps {
   order: CargoRequest
@@ -55,11 +57,11 @@ const formatBudget = (value: number | null) => {
 }
 
 export default function OrderCard({ order }: OrderCardProps) {
+  const [isPopupOpen, setIsPopupOpen] = useState(false)
   const status = STATUS_CONFIG[order.status]
 
   return (
     <article className="rounded-2xl border border-gray-200 bg-white p-5">
-      {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-sm text-gray-400">Заказ #{order.id}</p>
@@ -78,7 +80,6 @@ export default function OrderCard({ order }: OrderCardProps) {
         <p className="text-sm text-gray-400">{formatDate(order.created_at)}</p>
       </div>
 
-      {/* Route */}
       <div className="mt-5 rounded-xl bg-gray-50 p-4">
         <div className="flex gap-3">
           <div className="flex flex-col items-center">
@@ -105,7 +106,6 @@ export default function OrderCard({ order }: OrderCardProps) {
         </div>
       </div>
 
-      {/* Information */}
       <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <InfoItem
           icon={<CalendarDays size={18} />}
@@ -130,7 +130,6 @@ export default function OrderCard({ order }: OrderCardProps) {
         )}
       </div>
 
-      {/* Footer */}
       <div className="mt-5 flex items-end justify-between gap-4 border-t border-gray-100 pt-4">
         <div>
           <p className="text-xs text-gray-400">Бюджет</p>
@@ -138,44 +137,28 @@ export default function OrderCard({ order }: OrderCardProps) {
           <p className="text-text mt-1 text-lg font-semibold">{formatBudget(order.budget)}</p>
         </div>
 
-        <Link
-          href={`/account/orders/${order.id}`}
+        <button
+          type="button"
+          onClick={() => setIsPopupOpen(true)}
           className="text-orange inline-flex items-center gap-1 text-sm font-medium transition-colors hover:text-[#e65322]"
         >
           Подробнее
           <ArrowRight size={16} />
-        </Link>
+        </button>
       </div>
 
-      {/* Comment */}
       {order.comment && (
         <div className="mt-4 border-t border-gray-100 pt-4">
           <p className="line-clamp-2 text-sm text-gray-500">{order.comment}</p>
         </div>
       )}
+
+      <OrderPopup
+        order={order}
+        status={status}
+        isOpen={isPopupOpen}
+        onClose={() => setIsPopupOpen(false)}
+      />
     </article>
-  )
-}
-
-interface InfoItemProps {
-  icon: ReactNode
-  label: string
-  value: string
-  secondary?: string
-}
-
-function InfoItem({ icon, label, value, secondary }: InfoItemProps) {
-  return (
-    <div className="flex gap-3">
-      <div className="mt-0.5 shrink-0 text-gray-400">{icon}</div>
-
-      <div className="min-w-0">
-        <p className="text-xs text-gray-400">{label}</p>
-
-        <p className="text-text mt-1 truncate text-sm font-medium">{value}</p>
-
-        {secondary && <p className="mt-1 text-xs text-gray-500">{secondary}</p>}
-      </div>
-    </div>
   )
 }

@@ -1,3 +1,6 @@
+from collections.abc import AsyncGenerator
+from typing import Any
+
 import redis.asyncio as aioredis
 from redis.asyncio.retry import Retry
 from redis.backoff import NoBackoff
@@ -5,6 +8,7 @@ from redis.backoff import NoBackoff
 from core.config import settings
 
 from core.redis.can_send_new_code import can_send_new_code
+from core.redis.chat import publish_to_participants, subscribe
 from core.redis.delete_cached_by_prefix import delete_cached_by_prefix
 from core.redis.delete_cached_keys import delete_cached_keys
 from core.redis.delete_verification_code import delete_verification_code
@@ -87,6 +91,33 @@ class RedisClient:
     async def delete_cached_by_prefix(self, prefix: str) -> int:
         """Удаляет все ключи кеша по префиксу, возвращает количество удалённых."""
         return await delete_cached_by_prefix(self.redis, prefix)
+
+    # --- чат: pub/sub --------------------------------------------------------
+
+    async def publish_chat_event(
+        self,
+        *,
+        client_id: int,
+        executor_id: int,
+        event_type: str,
+        data: dict[str, Any],
+    ) -> int:
+        """Публикует событие чата обоим участникам беседы (после commit).
+
+        Returns:
+            int: сколько получателей получило событие (0 при ошибке Redis)
+        """
+        return await publish_to_participants(
+            self.redis,
+            client_id=client_id,
+            executor_id=executor_id,
+            event_type=event_type,
+            data=data,
+        )
+
+    def subscribe_chat(self, *channels: str) -> AsyncGenerator[dict[str, Any], None]:
+        """Подписка на каналы чата (async-генератор событий) для WS-хаба."""
+        return subscribe(self.redis, *channels)
 
 
 redis_client = RedisClient()

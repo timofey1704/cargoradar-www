@@ -37,7 +37,12 @@ class Settings(BaseSettings):
     cache_ttl_faq: int = 86400  # секунд
     cache_ttl_membership_plans: int = 86400  # секунд
     cache_ttl_search: int = 300  # секунд
-    
+
+    # чат: лимиты сообщений и вложений
+    chat_max_message_length: int = 4000
+    chat_max_attachments: int = 10
+    chat_max_file_bytes: int = 25 * 1024 * 1024  # 25 МБ
+
     # админские токены — свои TTL (панелью пользуются реже, но сессию держать удобнее)
     admin_access_token_expire_minutes: int = 60
     admin_refresh_token_expire_days: int = 30

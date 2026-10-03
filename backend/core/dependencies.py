@@ -1,11 +1,13 @@
-from typing import Annotated
+from typing import Annotated, Iterable
 from collections.abc import AsyncGenerator
+from dataclasses import dataclass
 
 from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import AsyncSessionLocal
+from core.models.enums.actor_types import ActorType
 from core.security import decode_token
 
 from client.models.client import Client
@@ -151,8 +153,111 @@ async def get_current_executor(
 
     return executor
 
+@dataclass(frozen=True, slots=True)
+class ChatActor:
+    """Участник чата: клиент или исполнитель.
+
+    Чат доступен обеим ролям, поэтому у REST-роутов чата нет отдельного
+    `CurrentClient`/`CurrentExecutor` — вместо них `CurrentChatActor` с ролью,
+    из которой сервис строит проверку участия в беседе и свой Redis-канал
+    (`chat:user:{role}:{id}` — без роли id двух таблиц совпали бы).
+    """
+
+    role: ActorType  # ActorType.client | ActorType.executor
+    id: int
+
+
+def _unauthorized() -> HTTPException:
+    return HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Not authenticated",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+
+async def authenticate_chat_actor(
+    db: AsyncSession, tokens: Iterable[str | None]
+) -> ChatActor:
+    """Первый валидный access-токен из списка → участник чата.
+
+    Общая точка входа для REST-зависимости и WebSocket-хаба: браузерный
+    WebSocket не умеет ставить заголовки, поэтому хаб передаёт сюда токены
+    из cookie (и опционально из query). Бросает HTTPException (401/403) —
+    если ни один токен не подошёл, поднимается последняя ошибка.
+    """
+    last_error: HTTPException | None = None
+
+    for token in tokens:
+        if not token:
+            continue
+
+        payload = decode_token(token, is_refresh=False)
+        if not payload or payload.get("type") != "access":
+            last_error = HTTPException(
+                status.HTTP_401_UNAUTHORIZED, "Invalid or expired token"
+            )
+            continue
+
+        role = payload.get("role")
+        if role not in (ActorType.client.value, ActorType.executor.value):
+            last_error = HTTPException(
+                status.HTTP_401_UNAUTHORIZED, "Invalid or expired token"
+            )
+            continue
+
+        subject = payload.get("sub")
+        if not isinstance(subject, str):
+            last_error = _unauthorized()
+            continue
+
+        try:
+            user_id = int(subject)
+        except (TypeError, ValueError):
+            last_error = _unauthorized()
+            continue
+
+        if role == ActorType.client.value:
+            user = await ClientRepository(db).get_by_id(user_id)
+        else:
+            user = await ExecutorRepository(db).get_by_id(user_id)
+
+        if user is None:
+            last_error = HTTPException(status.HTTP_401_UNAUTHORIZED, "User not found")
+            continue
+
+        if not user.is_active:
+            # токен валиден, но аккаунт заблокирован — дальше не пробуем
+            raise HTTPException(
+                status.HTTP_403_FORBIDDEN, "Account is deactivated"
+            )
+
+        return ChatActor(role=ActorType(role), id=user_id)
+
+    raise last_error or _unauthorized()
+
+
+async def get_chat_actor(
+    db: DbSession,
+    request: Request,
+    credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
+) -> ChatActor:
+    """Dependency для REST-роутов чата: Bearer-заголовок либо httpOnly-куки.
+
+    Обе роли ходят в одни и те же `/api/conversations*`, токен
+    берётся из `client_access_token`/`executor_access_token`, а роль claims-а
+    JWT определяет, от чьего имени работает запрос.
+    """
+    return await authenticate_chat_actor(
+        db,
+        (
+            credentials.credentials if credentials else None,
+            request.cookies.get("client_access_token"),
+            request.cookies.get("executor_access_token"),
+        ),
+    )
 
 # Type aliases для инъекций зависимостей
 CurrentClient = Annotated[Client, Depends(get_current_user)]
 CurrentExecutor = Annotated[Executor, Depends(get_current_executor)]
 DbSession = Annotated[AsyncSession, Depends(get_db)]
+CurrentChatActor = Annotated[ChatActor, Depends(get_chat_actor)]

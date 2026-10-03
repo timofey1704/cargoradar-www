@@ -18,6 +18,8 @@ from core.routes.search.post import router as search_post_router
 from core.routes.search.request import router as search_request_router
 from core.routes.search.route import router as search_route_router
 from core.routes.geo import router as geocoder_router
+from core.routes.chat import router as chat_router
+from core.routes.ws import router as chat_ws_router
 
 from executor.routes.auth import router as executor_auth_router
 from executor.routes.support import router as executor_support_router
@@ -124,6 +126,9 @@ app.include_router(search_feed_router, prefix="/api/search") # общая лен
 app.include_router(search_request_router, prefix="/api/search") # поиск заявок: /api/search/requests
 app.include_router(search_post_router, prefix="/api/search") # поиск постов: /api/search/posts
 app.include_router(search_route_router, prefix="/api/search") # поиск маршрутов водителей: /api/search/routes
+
+app.include_router(chat_router, prefix="/api") # чат: /api/conversations*, /api/attachments*
+app.include_router(chat_ws_router) # WS-хаб чата: /ws (одно соединение на пользователя)
 
 
 app.include_router(executor_auth_router, prefix="/api/executor") # авторизация исполнителей: /api/executor/auth/*

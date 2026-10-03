@@ -27,7 +27,7 @@ BPMN-диаграмма архитектуры: [`BP-05-chat.bpmn`](../diagrams/
 ```
 Браузер ──REST──► FastAPI ──► Postgres (источник истины)
    ▲                  │
-   └──── WS ◄─── Redis pub/sub (канал user:{id}) ◄─ publish после commit
+   └──── WS ◄─── Redis pub/sub (канал chat:user:{role}:{id}) ◄─ publish после commit
 Файлы: браузер ──POST (multipart)──► FastAPI ──► локальный диск (uploads/), отдача по /uploads/...
 ```
 
@@ -53,7 +53,7 @@ sequenceDiagram
     B->>A: POST /conversations/:id/messages (idempotency_key)
     A->>D: INSERT message, COMMIT
     D-->>A: ok
-    A->>R: PUBLISH user:id (message.created)
+    A->>R: PUBLISH chat:user:{client|executor}:id (message.created)
     R-->>H: событие подписчику
     H-->>P: WebSocket: message.created
     H-->>B: WebSocket: message.created (дедупликация по id)
@@ -242,7 +242,7 @@ stateDiagram-v2
 
 **Redis:**
 
-- Канал на пользователя: `user:{id}`. Бэкенд после commit публикует событие в каналы обоих участников беседы.
+- Канал на пользователя: `chat:user:{role}:{id}`, где `role` — `client` | `executor`. Роль в ключе обязательна: id клиентов и исполнителей живут в разных таблицах и могут совпадать — без роли каналы разных людей «слиплись» бы в один. Бэкенд после commit публикует событие в каналы обоих участников беседы.
 - Каждый воркер FastAPI подписан на каналы тех пользователей, чьи сокеты у него открыты, и рассылает полученное локальным сокетам.
 - Гарантий доставки нет. Источник истины — PostgreSQL, пропущенное догружается через `after_id`.
 - Typing-индикаторы и онлайн-статус (если понадобятся) хранить в Redis с TTL, а не в PostgreSQL.

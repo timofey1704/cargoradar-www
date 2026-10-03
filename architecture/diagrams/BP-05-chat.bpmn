@@ -15,7 +15,7 @@
     <bpmn:messageFlow id="MF_post" name="POST /messages" sourceRef="BS_send" targetRef="R_start2" />
     <bpmn:messageFlow id="MF_saveMsg" name="INSERT message" sourceRef="R_saveMsg" targetRef="D_startB" />
     <bpmn:messageFlow id="MF_commit" name="commit ok" sourceRef="D_ack" targetRef="R_commitRecv" />
-    <bpmn:messageFlow id="MF_publish" name="PUBLISH user:id" sourceRef="R_publish" targetRef="X_start" />
+    <bpmn:messageFlow id="MF_publish" name="PUBLISH chat:user:{role}:{id}" sourceRef="R_publish" targetRef="X_start" />
     <bpmn:messageFlow id="MF_fanout" name="событие канала" sourceRef="X_send" targetRef="H_start" />
     <bpmn:messageFlow id="MF_ws" name="WS: message.created" sourceRef="H_send" targetRef="BR_start" />
   </bpmn:collaboration>
@@ -102,7 +102,7 @@
       <bpmn:outgoing>R7</bpmn:outgoing>
       <bpmn:messageEventDefinition id="Msg_R_commitRecv" />
     </bpmn:intermediateCatchEvent>
-    <bpmn:sendTask id="R_publish" name="Опубликовать message.created в канал user:id">
+    <bpmn:sendTask id="R_publish" name="Опубликовать message.created в канал chat:user:{role}:{id}">
       <bpmn:documentation>Публикация строго ПОСЛЕ commit. Канал каждого участника беседы.</bpmn:documentation>
       <bpmn:incoming>R7</bpmn:incoming>
       <bpmn:outgoing>R8</bpmn:outgoing>
@@ -154,7 +154,7 @@
     <bpmn:sequenceFlow id="D5" sourceRef="D_ack" targetRef="D_endB" />
   </bpmn:process>
   <bpmn:process id="RedisProcess" isExecutable="false">
-    <bpmn:startEvent id="X_start" name="PUBLISH user:id">
+    <bpmn:startEvent id="X_start" name="PUBLISH chat:user:{role}:{id}">
       <bpmn:outgoing>X1</bpmn:outgoing>
       <bpmn:messageEventDefinition id="Msg_X_start" />
     </bpmn:startEvent>

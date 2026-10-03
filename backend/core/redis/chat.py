@@ -17,16 +17,11 @@ from typing import Any
 
 import redis.asyncio as aioredis
 
-# --- именование каналов ------------------------------------------------------
-#
-# Роль в ключе обязательна: id клиентов и исполнителей живут в разных таблицах
-# и могут совпадать — без роли каналы разных людей «слиплись» бы в один.
 CHANNEL_PREFIX = "chat:user"
 
 ROLE_CLIENT = "client"
 ROLE_EXECUTOR = "executor"
 
-# --- типы событий (совпадают с событиями из 05-chat.md §7) -------------------
 EVENT_MESSAGE_CREATED = "message.created"
 EVENT_OFFER_UPDATED = "offer.updated"
 

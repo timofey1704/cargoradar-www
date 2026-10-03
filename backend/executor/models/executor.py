@@ -21,6 +21,7 @@ if TYPE_CHECKING:
     from core.models.membership import Subscription
     from core.models.support_request import SupportRequest
     from core.models.post import Post
+    from core.models.chats.conversation import Conversation
 
 class Executor(Base):
     __tablename__ = "executors"
@@ -51,6 +52,7 @@ class Executor(Base):
     subscriptions: Mapped[list["Subscription"]] = relationship(back_populates="executor", cascade="all, delete-orphan")
     support_requests: Mapped[list["SupportRequest"]] = relationship(back_populates="executor", cascade="all, delete-orphan")
     posts: Mapped[list["Post"]] = relationship(back_populates="executor", cascade="all, delete-orphan")
+    conversations: Mapped[list["Conversation"]] = relationship(back_populates="executor", cascade="all, delete-orphan")
     
     is_notifications_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)

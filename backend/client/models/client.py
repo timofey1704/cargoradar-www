@@ -18,6 +18,7 @@ if TYPE_CHECKING:
     from core.models.membership import Subscription
     from core.models.support_request import SupportRequest
     from core.models.post import Post
+    from core.models.chats.conversation import Conversation
 
 
 class Client(Base):
@@ -49,6 +50,7 @@ class Client(Base):
     support_requests: Mapped[list["SupportRequest"]] = relationship(back_populates="client", cascade="all, delete-orphan")
     posts: Mapped[list["Post"]] = relationship(back_populates="client", cascade="all, delete-orphan")
     cargo_requests: Mapped[list["CargoRequest"]] = relationship(back_populates="client", cascade="all, delete-orphan")
+    conversations: Mapped[list["Conversation"]] = relationship(back_populates="client", cascade="all, delete-orphan")
     
     def __repr__(self) -> str:
         return f"<User(id={self.id}, email={self.email})>"

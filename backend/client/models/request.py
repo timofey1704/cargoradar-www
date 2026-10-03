@@ -17,6 +17,7 @@ from client.models.enums.request_statuses import CargoRequestStatus
 
 if TYPE_CHECKING:
     from client.models.client import Client
+    from core.models.chats.conversation import Conversation
 
 
 class CargoRequest(Base):
@@ -28,6 +29,9 @@ class CargoRequest(Base):
         ForeignKey("clients.id", ondelete="CASCADE"), nullable=False
     )
     client: Mapped["Client"] = relationship(back_populates="cargo_requests")
+    conversations: Mapped[list["Conversation"]] = relationship(
+        back_populates="order", cascade="all, delete-orphan"
+    )
 
     # маршрут — текст для пользователя + геометрия для поиска
     origin_address: Mapped[str] = mapped_column(String(500))

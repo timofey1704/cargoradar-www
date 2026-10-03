@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Defs_Chat" targetNamespace="https://example.com/bpmn/chat-architecture" exporter="Claude" exporterVersion="1.0">
   <bpmn:collaboration id="Collab_Chat">
-    <bpmn:participant id="StoragePool" name="Файловое хранилище (S3 API)" processRef="StorageProcess" />
+    <bpmn:participant id="StoragePool" name="Локальное хранилище (диск, uploads/)" processRef="StorageProcess" />
     <bpmn:participant id="BrowserSenderPool" name="Браузер отправителя (Next.js)" processRef="BrowserSenderProcess" />
     <bpmn:participant id="RestPool" name="FastAPI: REST API" processRef="RestProcess" />
     <bpmn:participant id="DbPool" name="PostgreSQL (источник истины)" processRef="DbProcess" />
@@ -10,8 +10,8 @@
     <bpmn:participant id="BrowserReceiverPool" name="Браузер получателя (Next.js)" processRef="BrowserReceiverProcess" />
     <bpmn:messageFlow id="MF_upload" name="POST /attachments" sourceRef="BS_reqUpload" targetRef="R_start1" />
     <bpmn:messageFlow id="MF_saveAtt" name="INSERT attachment" sourceRef="R_prep" targetRef="D_startA" />
-    <bpmn:messageFlow id="MF_url" name="presigned URL" sourceRef="R_sendUrl" targetRef="BS_urlRecv" />
-    <bpmn:messageFlow id="MF_put" name="PUT файла" sourceRef="BS_put" targetRef="S_start" />
+    <bpmn:messageFlow id="MF_url" name="URL вложения" sourceRef="R_sendUrl" targetRef="BS_urlRecv" />
+    <bpmn:messageFlow id="MF_put" name="запись файла" sourceRef="R_sendUrl" targetRef="S_start" />
     <bpmn:messageFlow id="MF_post" name="POST /messages" sourceRef="BS_send" targetRef="R_start2" />
     <bpmn:messageFlow id="MF_saveMsg" name="INSERT message" sourceRef="R_saveMsg" targetRef="D_startB" />
     <bpmn:messageFlow id="MF_commit" name="commit ok" sourceRef="D_ack" targetRef="R_commitRecv" />
@@ -20,11 +20,11 @@
     <bpmn:messageFlow id="MF_ws" name="WS: message.created" sourceRef="H_send" targetRef="BR_start" />
   </bpmn:collaboration>
   <bpmn:process id="StorageProcess" isExecutable="false">
-    <bpmn:startEvent id="S_start" name="PUT файла">
+    <bpmn:startEvent id="S_start" name="Запись файла">
       <bpmn:outgoing>S1</bpmn:outgoing>
       <bpmn:messageEventDefinition id="Msg_S_start" />
     </bpmn:startEvent>
-    <bpmn:serviceTask id="S_store" name="Проверить подпись URL, сохранить объект">
+    <bpmn:serviceTask id="S_store" name="Сохранить файл на диск, вернуть путь">
       <bpmn:incoming>S1</bpmn:incoming>
       <bpmn:outgoing>S2</bpmn:outgoing>
     </bpmn:serviceTask>
@@ -47,18 +47,13 @@
       <bpmn:incoming>BS2</bpmn:incoming>
       <bpmn:outgoing>BS3</bpmn:outgoing>
     </bpmn:sendTask>
-    <bpmn:intermediateCatchEvent id="BS_urlRecv" name="Получен presigned URL">
+    <bpmn:intermediateCatchEvent id="BS_urlRecv" name="Получен URL вложения">
       <bpmn:incoming>BS3</bpmn:incoming>
       <bpmn:outgoing>BS4</bpmn:outgoing>
       <bpmn:messageEventDefinition id="Msg_BS_urlRecv" />
     </bpmn:intermediateCatchEvent>
-    <bpmn:sendTask id="BS_put" name="Загрузить файл по presigned URL (PUT)">
-      <bpmn:documentation>Файл уходит напрямую в хранилище, минуя FastAPI. Нужна CORS-настройка бакета для origin сайта.</bpmn:documentation>
-      <bpmn:incoming>BS4</bpmn:incoming>
-      <bpmn:outgoing>BS5</bpmn:outgoing>
-    </bpmn:sendTask>
     <bpmn:sendTask id="BS_send" name="Отправить сообщение: POST /messages">
-      <bpmn:incoming>BS5</bpmn:incoming>
+      <bpmn:incoming>BS4</bpmn:incoming>
       <bpmn:incoming>BS7</bpmn:incoming>
       <bpmn:outgoing>BS6</bpmn:outgoing>
     </bpmn:sendTask>
@@ -68,8 +63,7 @@
     <bpmn:sequenceFlow id="BS1" sourceRef="BS_start" targetRef="BS_gate" />
     <bpmn:sequenceFlow id="BS2" name="Да" sourceRef="BS_gate" targetRef="BS_reqUpload" />
     <bpmn:sequenceFlow id="BS3" sourceRef="BS_reqUpload" targetRef="BS_urlRecv" />
-    <bpmn:sequenceFlow id="BS4" sourceRef="BS_urlRecv" targetRef="BS_put" />
-    <bpmn:sequenceFlow id="BS5" sourceRef="BS_put" targetRef="BS_send" />
+    <bpmn:sequenceFlow id="BS4" sourceRef="BS_urlRecv" targetRef="BS_send" />
     <bpmn:sequenceFlow id="BS6" sourceRef="BS_send" targetRef="BS_end" />
     <bpmn:sequenceFlow id="BS7" name="Нет" sourceRef="BS_gate" targetRef="BS_send" />
   </bpmn:process>
@@ -83,8 +77,8 @@
       <bpmn:incoming>R1</bpmn:incoming>
       <bpmn:outgoing>R2</bpmn:outgoing>
     </bpmn:sendTask>
-    <bpmn:sendTask id="R_sendUrl" name="Выдать presigned URL">
-      <bpmn:documentation>Короткий TTL, ключ объекта генерируется на сервере.</bpmn:documentation>
+    <bpmn:sendTask id="R_sendUrl" name="Сохранить файл, вернуть URL">
+      <bpmn:documentation>Файл сохраняется в uploads/. В БД пишется относительный URL.</bpmn:documentation>
       <bpmn:incoming>R2</bpmn:incoming>
       <bpmn:outgoing>R3</bpmn:outgoing>
     </bpmn:sendTask>
@@ -246,9 +240,6 @@
         <dc:Bounds x="752" y="307" width="36" height="36" />
         <bpmndi:BPMNLabel><dc:Bounds x="725" y="271" width="90" height="28" /></bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="BS_put_di" bpmnElement="BS_put">
-        <dc:Bounds x="835" y="285" width="130" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BS_send_di" bpmnElement="BS_send">
         <dc:Bounds x="1005" y="285" width="130" height="80" />
       </bpmndi:BPMNShape>
@@ -271,10 +262,6 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BS4_di" bpmnElement="BS4">
         <di:waypoint x="788" y="325" />
-        <di:waypoint x="835" y="325" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="BS5_di" bpmnElement="BS5">
-        <di:waypoint x="965" y="325" />
         <di:waypoint x="1005" y="325" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BS6_di" bpmnElement="BS6">

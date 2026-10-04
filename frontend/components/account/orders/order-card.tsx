@@ -136,20 +136,19 @@ export default function OrderCard({ order }: OrderCardProps) {
 
           <p className="text-text mt-1 text-lg font-semibold">{formatBudget(order.budget)}</p>
         </div>
-
-        <button
-          type="button"
-          onClick={() => setIsPopupOpen(true)}
-          className="text-orange inline-flex items-center gap-1 text-sm font-medium transition-colors hover:text-[#e65322]"
-        >
-          Подробнее
-          <ArrowRight size={16} />
-        </button>
       </div>
 
       {order.comment && (
-        <div className="mt-4 border-t border-gray-100 pt-4">
+        <div className="mt-3 flex items-end justify-between gap-4 border-t border-gray-100 pt-4">
           <p className="line-clamp-2 text-sm text-gray-500">{order.comment}</p>
+          <button
+            type="button"
+            onClick={() => setIsPopupOpen(true)}
+            className="text-orange inline-flex items-center gap-1 text-sm font-medium transition-colors hover:text-[#e65322]"
+          >
+            Подробнее
+            <ArrowRight size={16} />
+          </button>
         </div>
       )}
 

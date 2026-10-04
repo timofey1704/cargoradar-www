@@ -73,13 +73,7 @@ async function errorMessage(response: Response): Promise<string> {
  */
 export async function apiRequest<T = unknown>(
   path: string,
-  {
-    method = 'GET',
-    body,
-    headers = {},
-    retryOnUnauthorized = true,
-    signal,
-  }: ApiRequestOptions = {}
+  { method = 'GET', body, headers = {}, retryOnUnauthorized = true, signal }: ApiRequestOptions = {}
 ): Promise<T> {
   const url = `${process.env.NEXT_PUBLIC_API_URL}${path}`
 
@@ -88,10 +82,13 @@ export async function apiRequest<T = unknown>(
       method,
       credentials: 'include',
       headers: {
-        ...(body !== undefined ? { 'Content-Type': 'application/json' } : undefined),
+        ...(body !== undefined && !(body instanceof FormData)
+          ? { 'Content-Type': 'application/json' }
+          : undefined),
         ...headers,
       },
-      body: body !== undefined ? JSON.stringify(body) : undefined,
+      body:
+        body !== undefined ? (body instanceof FormData ? body : JSON.stringify(body)) : undefined,
       signal,
     })
 

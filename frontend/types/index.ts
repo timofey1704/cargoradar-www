@@ -23,3 +23,11 @@ export type {
   GeoReverseResult,
   RouteData,
 } from './geo'
+export type {
+  ChatActorType,
+  ChatMessageType,
+  ChatAttachment,
+  ChatMessage,
+  ChatConversation,
+  CreateChatMessage,
+} from './chat'

@@ -1,10 +1,12 @@
 'use client'
 
-import { CalendarDays, MapPin, MessageCircle, Package, Truck } from 'lucide-react'
+import { CalendarDays, MapPin, Package, Truck } from 'lucide-react'
 import type { ReactNode } from 'react'
 
 import type { CargoRequest } from '@/types'
 import Modal from '@/components/ui/modal'
+
+import OrderChat from './order-chat'
 
 interface OrderPopupProps {
   order: CargoRequest
@@ -15,23 +17,6 @@ interface OrderPopupProps {
   isOpen: boolean
   onClose: () => void
 }
-
-const MOCK_CHATS = [
-  {
-    name: 'Исполнитель 1',
-    initials: 'И1',
-    message: 'Здравствуйте! Готовы обсудить детали перевозки.',
-    time: '10:42',
-    unread: true,
-  },
-  {
-    name: 'Исполнитель 2',
-    initials: 'И2',
-    message: 'Подскажите, груз уже подготовлен к загрузке?',
-    time: 'Вчера',
-    unread: false,
-  },
-]
 
 const formatDate = (value: string) => {
   return new Intl.DateTimeFormat('ru-RU', {
@@ -129,30 +114,7 @@ export default function OrderPopup({ order, status, isOpen, onClose }: OrderPopu
           )}
         </section>
 
-        <section className="border-t border-gray-100 pt-5">
-          <div className="flex items-center gap-2">
-            <MessageCircle size={18} className="text-orange" />
-            <h3 className="text-text text-base font-semibold">Чаты по заказу</h3>
-          </div>
-
-          <div className="mt-3 divide-y divide-gray-100">
-            {MOCK_CHATS.map(chat => (
-              <div key={chat.name} className="flex items-center gap-3 py-3">
-                <div className="text-orange flex size-10 shrink-0 items-center justify-center rounded-full bg-orange-50 text-sm font-semibold">
-                  {chat.initials}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="text-text truncate text-sm font-medium">{chat.name}</p>
-                    <span className="shrink-0 text-xs text-gray-400">{chat.time}</span>
-                  </div>
-                  <p className="mt-1 truncate text-sm text-gray-500">{chat.message}</p>
-                </div>
-                {chat.unread && <span className="bg-orange size-2 shrink-0 rounded-full" />}
-              </div>
-            ))}
-          </div>
-        </section>
+        <OrderChat orderId={order.id} isOpen={isOpen} />
       </div>
     </Modal>
   )

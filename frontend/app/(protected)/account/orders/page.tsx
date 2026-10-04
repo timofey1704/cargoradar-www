@@ -46,7 +46,7 @@ export default function OrdersPage() {
         onTabChange={setTab}
       />
 
-      <div className="mt-6">
+      <div className="my-6">
         {selectedTab === 'orders' && <OrdersList />}
         {selectedTab === 'create' && <CreateOrder onCreated={() => setTab('orders')} />}
       </div>

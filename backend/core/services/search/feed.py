@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from client.models.request import CargoRequest
 from core.models.post import Post
 from core.repositories.search.feed import FeedItem, FeedRepository
-from core.schemas.search.feed import FeedItemRead, FeedPageRead
+from core.schemas.search.feed import FeedItemRead, FeedMapPointRead, FeedPageRead
 from core.schemas.search.post import PostRead
 from core.schemas.search.request import CargoRequestRead
 from core.schemas.search.route import RouteRead
@@ -20,7 +20,7 @@ class FeedService:
         self.db = db
         self.repository = FeedRepository(db)
 
-    @search_cached("search:feed")
+    @search_cached("search:feed:v2")
     async def get_feed(
         self, *, skip: int = 0, limit: int = DEFAULT_PAGE_LIMIT
     ) -> FeedPageRead:
@@ -61,4 +61,12 @@ class FeedService:
             route=route,
             post=post,
             request=request,
+            map_points=[
+                FeedMapPointRead(
+                    label=point.label,
+                    latitude=point.latitude,
+                    longitude=point.longitude,
+                )
+                for point in item.map_points
+            ],
         )

@@ -40,6 +40,12 @@ export interface SearchRequestPayload {
   created_at: string
 }
 
+export interface SearchMapPoint {
+  label: string
+  latitude: number
+  longitude: number
+}
+
 export type SearchFeedItem =
   | {
       kind: 'route'
@@ -47,6 +53,7 @@ export type SearchFeedItem =
       created_at: string
       route: SearchRoutePayload | null
       post: null
+      map_points: SearchMapPoint[]
     }
   | {
       kind: 'post'
@@ -54,6 +61,7 @@ export type SearchFeedItem =
       created_at: string
       route: null
       post: SearchPostPayload | null
+      map_points: SearchMapPoint[]
     }
   | {
       kind: 'request'
@@ -62,6 +70,7 @@ export type SearchFeedItem =
       route: null
       post: null
       request: SearchRequestPayload | null
+      map_points: SearchMapPoint[]
     }
 
 export interface SearchFeedPage {
@@ -95,7 +104,15 @@ export async function getFeed(): Promise<SearchFeedPage> {
       return { items: [], total: 0, skip: 0, limit: 20, has_more: false }
     }
 
-    return json as SearchFeedPage
+    const page = json as SearchFeedPage
+
+    return {
+      ...page,
+      items: page.items.map(item => ({
+        ...item,
+        map_points: item.map_points ?? [],
+      })),
+    }
   } catch (error) {
     console.warn('[search-feed] failed to fetch', error)
     return { items: [], total: 0, skip: 0, limit: 20, has_more: false }

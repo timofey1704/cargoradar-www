@@ -10,6 +10,12 @@ from core.schemas.search.request import CargoRequestRead
 from core.schemas.search.route import RouteRead
 
 
+class FeedMapPointRead(BaseModel):
+    label: str
+    latitude: float
+    longitude: float
+
+
 class FeedItemRead(BaseModel):
     """Элемент ленты: заполнено ровно одно из полей `route`/`post`/`request`."""
 
@@ -20,6 +26,7 @@ class FeedItemRead(BaseModel):
     route: RouteRead | None = None
     post: PostRead | None = None
     request: CargoRequestRead | None = None
+    map_points: list[FeedMapPointRead] = Field(default_factory=list)
 
 
 class FeedPageRead(BaseModel):

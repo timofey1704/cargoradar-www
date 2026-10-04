@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Literal
 
@@ -21,6 +21,14 @@ class FeedItem:
     id: int
     created_at: datetime
     object: Route | Post | CargoRequest
+    map_points: list["FeedMapPoint"] = field(default_factory=list)
+
+
+@dataclass(slots=True)
+class FeedMapPoint:
+    label: str
+    latitude: float
+    longitude: float
 
 
 class FeedRepository:
@@ -39,18 +47,30 @@ class FeedRepository:
             Route.id.label("id"),
             literal("route").label("kind"),
             Route.created_at.label("created_at"),
+            func.ST_Y(Route.point_a_location).label("point_a_latitude"),
+            func.ST_X(Route.point_a_location).label("point_a_longitude"),
+            func.ST_Y(Route.point_b_location).label("point_b_latitude"),
+            func.ST_X(Route.point_b_location).label("point_b_longitude"),
         ).where(Route.is_deleted.is_(False))
 
         post_rows = select(
             Post.id.label("id"),
             literal("post").label("kind"),
             Post.created_at.label("created_at"),
+            literal(None).label("point_a_latitude"),
+            literal(None).label("point_a_longitude"),
+            literal(None).label("point_b_latitude"),
+            literal(None).label("point_b_longitude"),
         ).where(Post.is_deleted.is_(False))
 
         request_rows = select(
             CargoRequest.id.label("id"),
             literal("request").label("kind"),
             CargoRequest.created_at.label("created_at"),
+            func.ST_Y(CargoRequest.origin_location).label("point_a_latitude"),
+            func.ST_X(CargoRequest.origin_location).label("point_a_longitude"),
+            func.ST_Y(CargoRequest.destination_location).label("point_b_latitude"),
+            func.ST_X(CargoRequest.destination_location).label("point_b_longitude"),
         ).where(
             CargoRequest.is_deleted.is_(False),
             CargoRequest.status == CargoRequestStatus.NEW,
@@ -59,7 +79,15 @@ class FeedRepository:
         union_sq = route_rows.union_all(post_rows, request_rows).subquery()
 
         order_stmt = (
-            select(union_sq.c.id, union_sq.c.kind, union_sq.c.created_at)
+            select(
+                union_sq.c.id,
+                union_sq.c.kind,
+                union_sq.c.created_at,
+                union_sq.c.point_a_latitude,
+                union_sq.c.point_a_longitude,
+                union_sq.c.point_b_latitude,
+                union_sq.c.point_b_longitude,
+            )
             .order_by(union_sq.c.created_at.desc())
             .offset(skip)
             .limit(limit)
@@ -102,8 +130,26 @@ class FeedRepository:
             if obj is None:
                 # объект удалили между двумя запросами — пропускаем
                 continue
+            if isinstance(obj, Route):
+                map_points = [
+                    FeedMapPoint(obj.point_a, float(row.point_a_latitude), float(row.point_a_longitude)),
+                    FeedMapPoint(obj.point_b, float(row.point_b_latitude), float(row.point_b_longitude)),
+                ]
+            elif isinstance(obj, CargoRequest):
+                map_points = [
+                    FeedMapPoint(obj.origin_address, float(row.point_a_latitude), float(row.point_a_longitude)),
+                    FeedMapPoint(obj.destination_address, float(row.point_b_latitude), float(row.point_b_longitude)),
+                ]
+            else:
+                map_points = []
             items.append(
-                FeedItem(kind=row.kind, id=row.id, created_at=row.created_at, object=obj)
+                FeedItem(
+                    kind=row.kind,
+                    id=row.id,
+                    created_at=row.created_at,
+                    object=obj,
+                    map_points=map_points,
+                )
             )
         return items
 

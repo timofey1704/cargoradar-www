@@ -1,24 +1,31 @@
 import { SearchResults } from '@/components/search/search-results'
+import { SearchMap } from '@/components/search/search-map'
 import { searchCategories } from '@/config/navigation'
 import { getFeed } from '@/lib/search/get-feed'
 
 const SearchPage = async () => {
   const feed = await getFeed()
+  const mapPoints = feed.items.flatMap(item =>
+    item.map_points.map((point, index) => ({
+      ...point,
+      id: `${item.kind}-${item.id}-${index}`,
+      kind: item.kind === 'route' ? 'Маршрут водителя' : 'Заявка на перевозку',
+    }))
+  )
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
-      <section className="from-orange/10 ring-orange/10 rounded-3xl bg-gradient-to-br via-white to-white p-8 shadow-sm ring-1">
+    <main className="mx-auto max-w-[1600px] px-4 py-8 sm:px-6 lg:px-8">
+      <section className="from-orange/10 ring-orange/10 rounded-3xl bg-linear-to-br via-white to-white p-8 shadow-sm ring-1">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-2xl">
             <span className="text-orange text-sm font-semibold tracking-[0.12em] uppercase">
               Поиск
             </span>
             <h1 className="text-text mt-3 text-3xl font-bold sm:text-4xl">
-              Найдите перевозчика, сервис или запчасти
+              Перевозки рядом с вами
             </h1>
             <p className="mt-3 text-base leading-7 text-gray-600">
-              Лента объединяет маршруты водителей и публикации исполнителей: маршруты, сервисы,
-              эвакуаторы и поставки частично.
+              Актуальные заявки и маршруты с точками отправления и назначения на карте.
             </p>
           </div>
 
@@ -37,23 +44,29 @@ const SearchPage = async () => {
         </div>
       </section>
 
-      <section className="mt-10">
-        <div className="mb-5 flex items-center justify-between gap-3">
-          <div>
-            <p className="text-sm font-medium tracking-[0.08em] text-gray-400 uppercase">Лента</p>
-            <h2 className="text-text mt-1 text-2xl font-bold">Все результаты</h2>
+      <div className="mt-8 grid gap-6 lg:grid-cols-2 lg:items-start">
+        <section className="min-w-0">
+          <div className="mb-5 flex items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-medium tracking-[0.08em] text-gray-400 uppercase">Лента</p>
+              <h2 className="text-text mt-1 text-2xl font-bold">Все результаты</h2>
+            </div>
+            <span className="rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-600">
+              {feed.total} записей
+            </span>
           </div>
-          <span className="rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-600">
-            {feed.total} записей
-          </span>
-        </div>
 
-        <SearchResults
-          items={feed.items}
-          emptyTitle="Пока нет публикаций"
-          emptyDescription="Скоро здесь появятся маршруты водителей и посты исполнителей."
-        />
-      </section>
+          <SearchResults
+            items={feed.items}
+            emptyTitle="Пока нет публикаций"
+            emptyDescription="Новые маршруты и заявки появятся здесь."
+          />
+        </section>
+
+        <aside className="lg:sticky lg:top-6">
+          <SearchMap points={mapPoints} />
+        </aside>
+      </div>
     </main>
   )
 }

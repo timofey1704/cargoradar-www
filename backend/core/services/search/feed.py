@@ -1,9 +1,11 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from client.models.request import CargoRequest
 from core.models.post import Post
 from core.repositories.search.feed import FeedItem, FeedRepository
 from core.schemas.search.feed import FeedItemRead, FeedPageRead
 from core.schemas.search.post import PostRead
+from core.schemas.search.request import CargoRequestRead
 from core.schemas.search.route import RouteRead
 from core.services.search.common import DEFAULT_PAGE_LIMIT, search_cached
 from executor.models.route import Route
@@ -47,10 +49,16 @@ class FeedService:
             if isinstance(item.object, Post)
             else None
         )
+        request = (
+            CargoRequestRead.model_validate(item.object)
+            if isinstance(item.object, CargoRequest)
+            else None
+        )
         return FeedItemRead(
             kind=item.kind,
             id=item.id,
             created_at=item.created_at,
             route=route,
             post=post,
+            request=request,
         )

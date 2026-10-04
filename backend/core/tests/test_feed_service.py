@@ -1,10 +1,12 @@
 """Проверяем сервис общей ленты: маппинг в read-схемы, пагинацию и кеш."""
 
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 
 import pytest
 
 from core.config import settings
+from client.models.enums.request_statuses import CargoRequestStatus
+from client.models.request import CargoRequest
 from core.models.enums.post_creator_type import PostCreatorType
 from core.models.post import Post
 from core.redis.cache import cache_key
@@ -39,6 +41,22 @@ def _post(post_id: int) -> Post:
         client_id=3,
         title="Нужен рефрижератор",
         request_text="Минск → Гомель, 10 тонн",
+        created_at=CREATED_AT,
+    )
+
+
+def _request(request_id: int) -> CargoRequest:
+    return CargoRequest(
+        id=request_id,
+        client_id=8,
+        status=CargoRequestStatus.NEW,
+        origin_address="Минск",
+        origin_location=None,
+        destination_address="Брест",
+        destination_location=None,
+        cargo_type="Стройматериалы",
+        weight_kg=1200.0,
+        loading_date=date(2026, 10, 10),
         created_at=CREATED_AT,
     )
 
@@ -106,6 +124,24 @@ async def test_feed_maps_route_and_post_to_read_schemas():
     assert post_item.post.creator_type == PostCreatorType.CLIENT
     assert post_item.post.client_id == 3
     assert post_item.route is None
+
+
+async def test_feed_maps_cargo_request_to_read_schema():
+    request = _request(3)
+    item = FeedItem(kind="request", id=3, created_at=CREATED_AT, object=request)
+    service, _ = _service([item])
+
+    page = await service.get_feed()
+
+    assert len(page.items) == 1
+    feed_item = page.items[0]
+    assert feed_item.kind == "request"
+    assert feed_item.request is not None
+    assert feed_item.request.origin_address == "Минск"
+    assert feed_item.request.destination_address == "Брест"
+    assert feed_item.request.cargo_type == "Стройматериалы"
+    assert feed_item.route is None
+    assert feed_item.post is None
 
 
 async def test_feed_pagination_sets_total_and_has_more():

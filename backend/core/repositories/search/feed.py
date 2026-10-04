@@ -7,10 +7,12 @@ from typing import Literal
 from sqlalchemy import func, literal, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from client.models.enums.request_statuses import CargoRequestStatus
+from client.models.request import CargoRequest
 from core.models.post import Post
 from executor.models.route import Route
 
-FeedKind = Literal["route", "post"]
+FeedKind = Literal["route", "post", "request"]
 
 
 @dataclass(slots=True)
@@ -18,7 +20,7 @@ class FeedItem:
     kind: FeedKind
     id: int
     created_at: datetime
-    object: Route | Post
+    object: Route | Post | CargoRequest
 
 
 class FeedRepository:
@@ -45,7 +47,16 @@ class FeedRepository:
             Post.created_at.label("created_at"),
         ).where(Post.is_deleted.is_(False))
 
-        union_sq = route_rows.union_all(post_rows).subquery()
+        request_rows = select(
+            CargoRequest.id.label("id"),
+            literal("request").label("kind"),
+            CargoRequest.created_at.label("created_at"),
+        ).where(
+            CargoRequest.is_deleted.is_(False),
+            CargoRequest.status == CargoRequestStatus.NEW,
+        )
+
+        union_sq = route_rows.union_all(post_rows, request_rows).subquery()
 
         order_stmt = (
             select(union_sq.c.id, union_sq.c.kind, union_sq.c.created_at)
@@ -57,6 +68,7 @@ class FeedRepository:
 
         route_ids = [row.id for row in rows if row.kind == "route"]
         post_ids = [row.id for row in rows if row.kind == "post"]
+        request_ids = [row.id for row in rows if row.kind == "request"]
 
         routes_by_id: dict[int, Route] = {}
         if route_ids:
@@ -72,9 +84,21 @@ class FeedRepository:
             )
             posts_by_id = {p.id: p for p in post_res.scalars().all()}
 
+        requests_by_id: dict[int, CargoRequest] = {}
+        if request_ids:
+            request_res = await self.session.execute(
+                select(CargoRequest).where(CargoRequest.id.in_(request_ids))
+            )
+            requests_by_id = {r.id: r for r in request_res.scalars().all()}
+
         items: list[FeedItem] = []
         for row in rows:
-            obj = routes_by_id.get(row.id) if row.kind == "route" else posts_by_id.get(row.id)
+            if row.kind == "route":
+                obj = routes_by_id.get(row.id)
+            elif row.kind == "post":
+                obj = posts_by_id.get(row.id)
+            else:
+                obj = requests_by_id.get(row.id)
             if obj is None:
                 # объект удалили между двумя запросами — пропускаем
                 continue
@@ -90,6 +114,15 @@ class FeedRepository:
         post_count_stmt = (
             select(func.count()).select_from(Post).where(Post.is_deleted.is_(False))
         )
+        request_count_stmt = (
+            select(func.count())
+            .select_from(CargoRequest)
+            .where(
+                CargoRequest.is_deleted.is_(False),
+                CargoRequest.status == CargoRequestStatus.NEW,
+            )
+        )
         route_count = (await self.session.execute(route_count_stmt)).scalar_one()
         post_count = (await self.session.execute(post_count_stmt)).scalar_one()
-        return route_count + post_count
+        request_count = (await self.session.execute(request_count_stmt)).scalar_one()
+        return route_count + post_count + request_count

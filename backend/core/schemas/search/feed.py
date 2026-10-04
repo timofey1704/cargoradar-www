@@ -6,11 +6,12 @@ from pydantic import BaseModel, Field
 
 from core.repositories.search.feed import FeedKind
 from core.schemas.search.post import PostRead
+from core.schemas.search.request import CargoRequestRead
 from core.schemas.search.route import RouteRead
 
 
 class FeedItemRead(BaseModel):
-    """Элемент ленты: маршрут или пост — заполнено ровно одно из полей `route`/`post`."""
+    """Элемент ленты: заполнено ровно одно из полей `route`/`post`/`request`."""
 
     kind: FeedKind
     id: int
@@ -18,6 +19,7 @@ class FeedItemRead(BaseModel):
 
     route: RouteRead | None = None
     post: PostRead | None = None
+    request: CargoRequestRead | None = None
 
 
 class FeedPageRead(BaseModel):

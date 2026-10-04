@@ -1,7 +1,7 @@
 import { SearchResults } from '@/components/search/search-results'
 import { getFeed } from '@/lib/search/get-feed'
 
-const ServicesPage = async () => {
+const ServiceStationsPage = async () => {
   const feed = await getFeed()
   const items = feed.items.filter(item => item.kind === 'post')
 
@@ -21,4 +21,4 @@ const ServicesPage = async () => {
   )
 }
 
-export default ServicesPage
+export default ServiceStationsPage

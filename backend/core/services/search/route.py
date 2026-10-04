@@ -12,7 +12,8 @@ class RouteService:
         self.db = db
         self.repository = RouteRepository(db)
 
-    @search_cached("search:route")
+    # v2: адреса в ответе сокращаются форматтером — старый кеш (без версии) невалиден
+    @search_cached("search:route:v2")
     async def get_by_executor(
         self, executor_id: int, *, skip: int = 0, limit: int = DEFAULT_PAGE_LIMIT
     ) -> RoutePageRead:

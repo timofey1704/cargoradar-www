@@ -5,6 +5,7 @@ from datetime import datetime
 from pydantic import BaseModel, ConfigDict
 
 from core.schemas.search.page import PageRead
+from utils.address_formatter import FormattedAddress
 
 
 class RouteRead(BaseModel):
@@ -12,8 +13,8 @@ class RouteRead(BaseModel):
 
     id: int
     executor_id: int
-    point_a: str
-    point_b: str
+    point_a: FormattedAddress
+    point_b: FormattedAddress
     distance_km: float | None = None
     duration_min: int | None = None
     comment: str | None = None

@@ -16,7 +16,8 @@ class CargoRequestService:
         self.db = db
         self.repository = CargoRequestRepository(db)
 
-    @search_cached("search:request:feed")
+    # v2: адреса в ответе сокращаются форматтером — старый кеш (без версии) невалиден
+    @search_cached("search:request:feed:v2")
     async def get_feed(
         self,
         *,
@@ -73,7 +74,7 @@ class CargoRequestService:
                 detail="Радиус поиска требует все три параметра: origin_lat, origin_lon и radius_km",
             )
 
-    @search_cached("search:request")
+    @search_cached("search:request:v2")
     async def get_by_client(
         self, client_id: int, *, skip: int = 0, limit: int = DEFAULT_PAGE_LIMIT
     ) -> CargoRequestPageRead:

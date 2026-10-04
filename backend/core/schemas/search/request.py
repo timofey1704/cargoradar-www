@@ -6,6 +6,7 @@ from pydantic import BaseModel, ConfigDict
 
 from client.models.enums.request_statuses import CargoRequestStatus
 from core.schemas.search.page import PageRead
+from utils.address_formatter import FormattedAddress
 
 
 class CargoRequestRead(BaseModel):
@@ -15,8 +16,8 @@ class CargoRequestRead(BaseModel):
     client_id: int
     status: CargoRequestStatus
 
-    origin_address: str
-    destination_address: str
+    origin_address: FormattedAddress
+    destination_address: FormattedAddress
 
     cargo_type: str
     weight_kg: float

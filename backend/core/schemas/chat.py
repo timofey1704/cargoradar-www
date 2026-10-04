@@ -12,6 +12,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from core.models.enums.actor_types import ActorType
 from core.models.enums.message_types import MessageType
+from utils.address_formatter import FormattedAddress
 
 
 class AttachmentRead(BaseModel):
@@ -40,8 +41,8 @@ class OrderBriefRead(BaseModel):
     """Заказ, по которому заведена беседа (для заголовка карточки)."""
 
     id: int
-    origin_address: str
-    destination_address: str
+    origin_address: FormattedAddress
+    destination_address: FormattedAddress
     cargo_type: str
 
     model_config = ConfigDict(from_attributes=True)

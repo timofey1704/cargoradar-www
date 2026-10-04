@@ -9,6 +9,7 @@ from core.schemas.search.request import CargoRequestRead
 from core.schemas.search.route import RouteRead
 from core.services.search.common import DEFAULT_PAGE_LIMIT, search_cached
 from executor.models.route import Route
+from utils.address_formatter import format_address
 
 
 class FeedService:
@@ -20,7 +21,8 @@ class FeedService:
         self.db = db
         self.repository = FeedRepository(db)
 
-    @search_cached("search:feed:v2")
+    # v3: адреса в ответе сокращаются форматтером — старый кеш (v2) держим невалидным
+    @search_cached("search:feed:v3")
     async def get_feed(
         self, *, skip: int = 0, limit: int = DEFAULT_PAGE_LIMIT
     ) -> FeedPageRead:
@@ -63,7 +65,7 @@ class FeedService:
             request=request,
             map_points=[
                 FeedMapPointRead(
-                    label=point.label,
+                    label=format_address(point.label),
                     latitude=point.latitude,
                     longitude=point.longitude,
                 )

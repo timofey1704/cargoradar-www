@@ -153,6 +153,33 @@ async def test_feed_maps_cargo_request_to_read_schema():
     assert feed_item.map_points[0].longitude == 27.56
 
 
+async def test_feed_formats_nominatim_addresses():
+    """Длинный display_name Nominatim в ленте сокращается до страны/города/улицы."""
+    route = _route(1)
+    route.point_a = "41, улица Одинцова, Запад, Фрунзенский район, Минск, 220018, Беларусь"
+    route.point_b = "Брест"
+    item = FeedItem(
+        kind="route",
+        id=1,
+        created_at=CREATED_AT,
+        object=route,
+        map_points=[
+            FeedMapPoint(route.point_a, 53.9, 27.56),
+            FeedMapPoint(route.point_b, 52.1, 23.7),
+        ],
+    )
+    service, _ = _service([item])
+
+    page = await service.get_feed()
+
+    feed_item = page.items[0]
+    assert feed_item.route is not None
+    assert feed_item.route.point_a == "Беларусь, Минск, Одинцова 41"
+    assert feed_item.route.point_b == "Брест"
+    assert feed_item.map_points[0].label == "Беларусь, Минск, Одинцова 41"
+    assert feed_item.map_points[1].label == "Брест"
+
+
 async def test_feed_pagination_sets_total_and_has_more():
     service, repository = _service(_posts_feed(3))
 
@@ -191,9 +218,9 @@ async def test_feed_is_cached_with_ttl(cache_client, fake_redis):
     assert repository.feed_calls == 1, "в БД ходим только на промахе кеша"
     assert repository.count_calls == 1
     assert first == second
-    assert await fake_redis.exists(cache_key("search:feed:v2:limit=20:skip=0")) == 1
+    assert await fake_redis.exists(cache_key("search:feed:v3:limit=20:skip=0")) == 1
     assert (
-        fake_redis.ttl_of(cache_key("search:feed:v2:limit=20:skip=0"))
+        fake_redis.ttl_of(cache_key("search:feed:v3:limit=20:skip=0"))
         == settings.cache_ttl_search
     )
 
@@ -207,8 +234,8 @@ async def test_each_feed_page_has_its_own_cache_key(cache_client, fake_redis):
 
     assert repository.feed_calls == 2, "у каждой страницы свой ключ кеша"
     assert fake_redis.contains(
-        cache_key("search:feed:v2:limit=2:skip=0"),
-        cache_key("search:feed:v2:limit=2:skip=2"),
+        cache_key("search:feed:v3:limit=2:skip=0"),
+        cache_key("search:feed:v3:limit=2:skip=2"),
     )
 
 
@@ -216,7 +243,7 @@ async def test_feed_is_reloaded_after_invalidation(cache_client):
     service, repository = _service(_feed_items())
     await service.get_feed()
 
-    await cache_client.delete_cached_keys(cache_key("search:feed:v2:limit=20:skip=0"))
+    await cache_client.delete_cached_keys(cache_key("search:feed:v3:limit=20:skip=0"))
     await service.get_feed()
 
     assert repository.feed_calls == 2

@@ -279,9 +279,9 @@ async def test_route_service_caches_pages_separately(fake_redis):
     assert other_page.has_more is False
     assert other_executor.items  # у другого исполнителя свой ключ кеша
     assert fake_redis.contains(
-        cache_key("search:route:executor_id=7:limit=2:skip=0"),
-        cache_key("search:route:executor_id=7:limit=2:skip=2"),
-        cache_key("search:route:executor_id=8:limit=2:skip=0"),
+        cache_key("search:route:v2:executor_id=7:limit=2:skip=0"),
+        cache_key("search:route:v2:executor_id=7:limit=2:skip=2"),
+        cache_key("search:route:v2:executor_id=8:limit=2:skip=0"),
     )
 
 
@@ -310,8 +310,8 @@ async def test_request_service_caches_by_filters(fake_redis):
 
     assert repository.feed_calls == 2, "разные фильтры — разные страницы кеша"
     assert fake_redis.contains(
-        cache_key("search:request:feed:limit=20:skip=0:status=new"),
-        cache_key("search:request:feed:cargo_type=Тент:limit=20:skip=0:status=new"),
+        cache_key("search:request:feed:v2:limit=20:skip=0:status=new"),
+        cache_key("search:request:feed:v2:cargo_type=Тент:limit=20:skip=0:status=new"),
     )
 
 

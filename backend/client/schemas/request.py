@@ -14,6 +14,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from client.models.enums.request_statuses import CargoRequestStatus
 from core.schemas.search.page import PageRead
+from utils.address_formatter import FormattedAddress
 
 
 class CargoRequestLocation(BaseModel):
@@ -106,8 +107,8 @@ class CargoRequestRead(BaseModel):
     client_id: int
     status: CargoRequestStatus
 
-    origin_address: str
-    destination_address: str
+    origin_address: FormattedAddress
+    destination_address: FormattedAddress
 
     cargo_type: str
     weight_kg: float

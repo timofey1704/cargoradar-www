@@ -13,7 +13,10 @@ function RequestCard({ item }: { item: Extract<SearchFeedItem, { kind: 'request'
   }
 
   return (
-    <article className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+    <article
+      id={`feed-item-${item.kind}-${item.id}`}
+      className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+    >
       <div className="flex items-center justify-between gap-4">
         <span className="bg-orange/10 text-orange rounded-full px-2.5 py-1 text-xs font-semibold">
           Заявка на перевозку

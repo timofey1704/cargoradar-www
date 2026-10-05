@@ -16,7 +16,10 @@ function PostCard({ item }: { item: Extract<SearchFeedItem, { kind: 'post' }> })
   const Icon = isExecutor ? CarFront : Wrench
 
   return (
-    <article className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+    <article
+      id={`feed-item-${item.kind}-${item.id}`}
+      className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+    >
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <div className="flex size-9 items-center justify-center rounded-xl bg-gray-100 text-gray-500">

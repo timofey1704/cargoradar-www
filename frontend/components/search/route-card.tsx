@@ -12,7 +12,10 @@ function RouteCard({ item }: { item: Extract<SearchFeedItem, { kind: 'route' }> 
   }
 
   return (
-    <article className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+    <article
+      id={`feed-item-${item.kind}-${item.id}`}
+      className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+    >
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-2">
           <span className="bg-orange/10 text-orange rounded-full px-2.5 py-1 text-xs font-semibold tracking-[0.08em] uppercase">

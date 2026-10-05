@@ -6,6 +6,8 @@ import type { SearchMapPoint } from '@/lib/search/get-feed'
 
 export interface SearchMapMarker extends SearchMapPoint {
   id: string
+  /** id элемента ленты вида `${kind}-${itemId}` — для связи маркера с карточкой */
+  itemId: string
   kind: string
   from?: string | null
   to?: string | null

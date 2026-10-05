@@ -5,6 +5,7 @@ import { CircleMarker, MapContainer, Popup, TileLayer, useMap } from 'react-leaf
 import type { LatLngBoundsExpression } from 'leaflet'
 
 import type { SearchMapMarker } from './search-map'
+import { deselectFeedItem, selectFeedItem } from './search-feed-events'
 
 const DEFAULT_CENTER: [number, number] = [53.9023, 27.5619]
 
@@ -51,6 +52,10 @@ export function SearchMapCanvas({ points }: { points: SearchMapMarker[] }) {
               center={[point.latitude, point.longitude]}
               radius={8}
               pathOptions={{ color, fillColor: color, fillOpacity: 0.9, weight: 2 }}
+              eventHandlers={{
+                popupopen: () => selectFeedItem(point.itemId),
+                popupclose: () => deselectFeedItem(),
+              }}
             >
               <Popup minWidth={240}>
                 <div className="min-w-52 space-y-3">

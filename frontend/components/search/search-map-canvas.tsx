@@ -6,6 +6,7 @@ import type { LatLngBoundsExpression } from 'leaflet'
 
 import type { SearchMapMarker } from './search-map'
 import { deselectFeedItem, selectFeedItem } from './search-feed-events'
+import { RequestOfferAction } from './request-offer-action'
 
 const DEFAULT_CENTER: [number, number] = [53.9023, 27.5619]
 
@@ -90,16 +91,9 @@ export function SearchMapCanvas({ points }: { points: SearchMapMarker[] }) {
                     </p>
                   )}
 
-                  <button
-                    type="button"
-                    onClick={() => {
-                      // todo: открыть попап с формой отклика
-                      console.info('[search-map] Откликнуться', point.id)
-                    }}
-                    className="bg-orange w-full rounded-xl px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#e95825]"
-                  >
-                    Откликнуться
-                  </button>
+                  {point.feedItem.kind === 'request' && (
+                    <RequestOfferAction item={point.feedItem} />
+                  )}
                 </div>
               </Popup>
             </CircleMarker>

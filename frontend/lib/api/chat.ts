@@ -1,6 +1,13 @@
 import { apiRequest } from '@/lib/api'
 
-import type { ChatAttachment, ChatConversation, ChatMessage, CreateChatMessage } from '@/types/chat'
+import type {
+  ChatAttachment,
+  ChatConversation,
+  ChatMessage,
+  CreateChatMessage,
+  CreateOrderOffer,
+  OrderOffer,
+} from '@/types/chat'
 
 export const getChatConversations = (skip = 0, limit = 100) => {
   const params = new URLSearchParams({ skip: String(skip), limit: String(limit) })
@@ -16,6 +23,13 @@ export const getChatMessages = (conversationId: number, afterId?: number) => {
 
 export const createChatMessage = (conversationId: number, data: CreateChatMessage) => {
   return apiRequest<ChatMessage>(`/conversations/${conversationId}/messages`, {
+    method: 'POST',
+    body: data,
+  })
+}
+
+export const createOrderOffer = (orderId: number, data: CreateOrderOffer) => {
+  return apiRequest<OrderOffer>(`/executor/orders/${orderId}/offers`, {
     method: 'POST',
     body: data,
   })

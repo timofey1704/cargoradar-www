@@ -21,6 +21,7 @@ const SearchPage = async () => {
         to: route?.point_b ?? request?.destination_address ?? null,
         price: route?.price ?? request?.budget ?? null,
         priceLabel: route ? 'Цена' : request ? 'Бюджет' : null,
+        feedItem: item,
       }
     })
   )

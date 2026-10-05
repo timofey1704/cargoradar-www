@@ -50,3 +50,17 @@ export interface CreateChatMessage {
   attachment_ids?: number[]
   idempotency_key?: string
 }
+
+export interface CreateOrderOffer {
+  price: number
+}
+
+export interface OrderOffer {
+  id: number
+  conversation_id: number
+  price: string
+  currency: string
+  terms: string | null
+  status: 'pending' | 'accepted' | 'declined' | 'countered' | 'withdrawn' | 'expired'
+  created_at: string
+}

@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, File, HTTPException, Query, UploadFile, status
 
-from core.dependencies import CurrentChatActor, DbSession
+from core.dependencies import ChatActor, CurrentChatActor, CurrentExecutor, DbSession
 from core.exceptions import (
     AttachmentLimitError,
     AttachmentNotAvailableError,
@@ -23,6 +23,7 @@ from core.exceptions import (
     MessageEmptyError,
     MessageTooLongError,
 )
+from core.models.enums.actor_types import ActorType
 from core.schemas.chat import (
     AttachmentRead,
     ConversationRead,
@@ -31,10 +32,43 @@ from core.schemas.chat import (
     MessageCreate,
     MessageRead,
 )
+from core.schemas.offer import OfferCreate, OfferRead
 from core.services.chat_service import ChatService
+from core.services.offer_service import (
+    OfferAlreadyPendingError,
+    OfferRequestNotFoundError,
+    OfferRequestUnavailableError,
+    OfferService,
+)
 from core.services.search.common import DEFAULT_PAGE_LIMIT
 
 router = APIRouter(tags=["chat"])
+
+
+@router.post(
+    "/executor/orders/{order_id}/offers",
+    response_model=OfferRead,
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_order_offer(
+    order_id: int,
+    data: OfferCreate,
+    current: CurrentExecutor,
+    db: DbSession,
+) -> OfferRead:
+    service = OfferService(db)
+    actor = ChatActor(role=ActorType.executor, id=current.id)
+    try:
+        return await service.create(actor, order_id, data)
+    except OfferRequestNotFoundError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Заявка не найдена") from exc
+    except OfferRequestUnavailableError as exc:
+        raise HTTPException(status.HTTP_409_CONFLICT, "Заявка уже закрыта") from exc
+    except OfferAlreadyPendingError as exc:
+        raise HTTPException(
+            status.HTTP_409_CONFLICT,
+            "У вас уже есть активное предложение по этой заявке",
+        ) from exc
 
 
 def _http_error(exc: ChatError) -> HTTPException:

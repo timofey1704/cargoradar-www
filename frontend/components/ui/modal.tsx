@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { IoClose } from 'react-icons/io5'
 
 interface ModalProps {
@@ -54,7 +55,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
 
   if (!isOpen) return null
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-9999 overflow-y-auto">
       <div
         className="fixed inset-0 bg-black transition-opacity duration-300 ease-in-out"
@@ -81,7 +82,8 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
           {children}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
 

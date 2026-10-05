@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic'
 
-import type { SearchMapPoint } from '@/lib/search/get-feed'
+import type { SearchFeedItem, SearchMapPoint } from '@/lib/search/get-feed'
 
 export interface SearchMapMarker extends SearchMapPoint {
   id: string
@@ -13,6 +13,8 @@ export interface SearchMapMarker extends SearchMapPoint {
   to?: string | null
   price?: number | null
   priceLabel?: string | null
+  /** Исходный элемент ленты — нужен для действий в попапе (например, отклика на заявку) */
+  feedItem: SearchFeedItem
 }
 
 const SearchMapCanvas = dynamic(

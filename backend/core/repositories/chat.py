@@ -23,7 +23,10 @@ from core.models.chats.conversation import Conversation
 from core.models.chats.message import Message
 from core.models.enums.actor_types import ActorType
 from core.models.enums.message_types import MessageType
+from core.models.enums.offer_statuses import OfferStatus
+from core.models.offer import Offer
 from executor.models.executor import Executor
+from core.schemas.offer import OfferCreate
 
 Counterparty = Client | Executor
 
@@ -163,6 +166,76 @@ class ChatRepository:
             select(CargoRequest).where(CargoRequest.id.in_(list(order_ids)))
         )
         return {order.id: order for order in result.scalars().all()}
+
+    async def get_order_for_offer(self, order_id: int) -> CargoRequest | None:
+        result = await self.session.execute(
+            select(CargoRequest)
+            .where(CargoRequest.id == order_id, CargoRequest.is_deleted.is_(False))
+            .with_for_update()
+        )
+        return result.scalar_one_or_none()
+
+    async def get_or_create_offer_conversation(
+        self, *, order_id: int, client_id: int, executor_id: int
+    ) -> Conversation:
+        stmt = select(Conversation).where(
+            Conversation.order_id == order_id,
+            Conversation.executor_id == executor_id,
+        ).with_for_update()
+        conversation = (await self.session.execute(stmt)).scalar_one_or_none()
+        if conversation is not None:
+            return conversation
+
+        conversation = Conversation(
+            order_id=order_id,
+            client_id=client_id,
+            executor_id=executor_id,
+        )
+        self.session.add(conversation)
+        await self.session.flush()
+        return conversation
+
+    async def get_pending_offer(self, conversation_id: int) -> Offer | None:
+        result = await self.session.execute(
+            select(Offer).where(
+                Offer.conversation_id == conversation_id,
+                Offer.status == OfferStatus.pending,
+            )
+        )
+        return result.scalar_one_or_none()
+
+    async def create_offer_message(
+        self,
+        *,
+        conversation: Conversation,
+        executor_id: int,
+        data: OfferCreate,
+    ) -> tuple[Offer, Message]:
+        offer = Offer(
+            conversation_id=conversation.id,
+            author_type=ActorType.executor,
+            author_executor_id=executor_id,
+            price=data.price,
+            currency="BYN",
+            terms=data.terms.strip() if data.terms and data.terms.strip() else None,
+        )
+        self.session.add(offer)
+        await self.session.flush()
+
+        message = Message(
+            conversation_id=conversation.id,
+            sender_type=ActorType.executor,
+            sender_executor_id=executor_id,
+            type=MessageType.offer,
+            offer_id=offer.id,
+        )
+        self.session.add(message)
+        await self.session.flush()
+        await self.session.refresh(offer)
+        await self.session.refresh(message)
+        conversation.last_message_at = message.created_at
+        await self.session.flush()
+        return offer, message
 
     # сообщения 
 

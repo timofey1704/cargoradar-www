@@ -32,6 +32,12 @@ interface GetRouteParams {
   }
 }
 
+interface GetRouteResponse {
+  distance_km: number
+  duration_minutes: number
+  geometry: [number, number][]
+}
+
 export const searchGeo = async ({ query, limit = 5, signal }: SearchGeoParams) => {
   const params = new URLSearchParams({
     q: query,
@@ -59,7 +65,7 @@ export const reverseGeo = ({ latitude, longitude }: ReverseGeoParams) => {
   return apiRequest<GeoReverseResult>(`/geo/reverse?${params.toString()}`)
 }
 
-export const getRoute = ({ origin, destination }: GetRouteParams) => {
+export const getRoute = async ({ origin, destination }: GetRouteParams) => {
   const params = new URLSearchParams({
     origin_latitude: String(origin.latitude),
     origin_longitude: String(origin.longitude),
@@ -67,5 +73,21 @@ export const getRoute = ({ origin, destination }: GetRouteParams) => {
     destination_longitude: String(destination.longitude),
   })
 
-  return apiRequest<RouteData>(`/geo/route?${params.toString()}`)
+  const response = await apiRequest<GetRouteResponse>(`/geo/route?${params.toString()}`)
+
+  if (
+    !Number.isFinite(response.distance_km) ||
+    !Number.isFinite(response.duration_minutes) ||
+    !Array.isArray(response.geometry)
+  ) {
+    throw new Error('Некорректный ответ сервера маршрутов')
+  }
+
+  const route: RouteData = {
+    distanceKm: response.distance_km,
+    durationMinutes: response.duration_minutes,
+    geometry: response.geometry,
+  }
+
+  return route
 }

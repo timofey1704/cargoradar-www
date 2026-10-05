@@ -6,11 +6,20 @@ import { getFeed } from '@/lib/search/get-feed'
 const SearchPage = async () => {
   const feed = await getFeed()
   const mapPoints = feed.items.flatMap(item =>
-    item.map_points.map((point, index) => ({
-      ...point,
-      id: `${item.kind}-${item.id}-${index}`,
-      kind: item.kind === 'route' ? 'Маршрут водителя' : 'Заявка на перевозку',
-    }))
+    item.map_points.map((point, index) => {
+      const route = item.kind === 'route' ? item.route : null
+      const request = item.kind === 'request' ? item.request : null
+
+      return {
+        ...point,
+        id: `${item.kind}-${item.id}-${index}`,
+        kind: item.kind === 'route' ? 'Маршрут водителя' : 'Заявка на перевозку',
+        from: route?.point_a ?? request?.origin_address ?? null,
+        to: route?.point_b ?? request?.destination_address ?? null,
+        price: route?.price ?? request?.budget ?? null,
+        priceLabel: route ? 'Цена' : request ? 'Бюджет' : null,
+      }
+    })
   )
 
   return (

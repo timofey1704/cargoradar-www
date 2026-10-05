@@ -7,6 +7,10 @@ import type { SearchMapPoint } from '@/lib/search/get-feed'
 export interface SearchMapMarker extends SearchMapPoint {
   id: string
   kind: string
+  from?: string | null
+  to?: string | null
+  price?: number | null
+  priceLabel?: string | null
 }
 
 const SearchMapCanvas = dynamic(

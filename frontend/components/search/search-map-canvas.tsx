@@ -52,10 +52,50 @@ export function SearchMapCanvas({ points }: { points: SearchMapMarker[] }) {
               radius={8}
               pathOptions={{ color, fillColor: color, fillOpacity: 0.9, weight: 2 }}
             >
-              <Popup>
-                <strong>{point.kind}</strong>
-                <br />
-                {point.label}
+              <Popup minWidth={240}>
+                <div className="min-w-52 space-y-3">
+                  <span className="bg-orange/10 text-orange inline-flex rounded-full px-2.5 py-1 text-xs font-semibold tracking-[0.08em] uppercase">
+                    {point.kind}
+                  </span>
+
+                  {(point.from || point.to) && (
+                    <div className="space-y-1.5 rounded-xl bg-gray-50 p-3 text-sm">
+                      {point.from && (
+                        <p className="flex gap-2">
+                          <span className="w-14 shrink-0 text-xs text-gray-400">Откуда</span>
+                          <span className="text-text min-w-0 text-sm font-semibold">
+                            {point.from}
+                          </span>
+                        </p>
+                      )}
+                      {point.to && (
+                        <p className="flex gap-2">
+                          <span className="w-14 shrink-0 text-xs text-gray-400">Куда</span>
+                          <span className="text-text min-w-0 text-sm font-semibold">
+                            {point.to}
+                          </span>
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {point.price !== null && point.price !== undefined && (
+                    <p className="text-text text-sm font-semibold">
+                      {point.priceLabel ?? 'Цена'}: {point.price.toLocaleString('ru-RU')} BYN
+                    </p>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      // todo: открыть попап с формой отклика
+                      console.info('[search-map] Откликнуться', point.id)
+                    }}
+                    className="bg-orange w-full rounded-xl px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#e95825]"
+                  >
+                    Откликнуться
+                  </button>
+                </div>
               </Popup>
             </CircleMarker>
           )

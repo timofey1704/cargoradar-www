@@ -3,6 +3,7 @@ import { ArrowRight, Clock3, MapPin } from 'lucide-react'
 import { type SearchFeedItem } from '@/lib/search/get-feed'
 
 import { formatDateTime } from '@/lib/utils/datetime-formatter'
+import { Button } from '@/components/ui/button'
 
 function RequestCard({ item }: { item: Extract<SearchFeedItem, { kind: 'request' }> }) {
   const request = item.request
@@ -46,7 +47,7 @@ function RequestCard({ item }: { item: Extract<SearchFeedItem, { kind: 'request'
         <p className="mt-4 line-clamp-2 text-sm leading-6 text-gray-600">{request.comment}</p>
       )}
 
-      <div className="mt-5 flex items-center justify-between border-t border-gray-100 pt-4 text-xs text-gray-500">
+      <div className="my-5 flex items-center justify-between border-t border-gray-100 pt-4 text-xs text-gray-500">
         <span className="inline-flex items-center gap-1.5">
           <Clock3 size={14} /> {formatDateTime(item.created_at)}
         </span>
@@ -54,6 +55,9 @@ function RequestCard({ item }: { item: Extract<SearchFeedItem, { kind: 'request'
           Погрузка: {new Intl.DateTimeFormat('ru-RU').format(new Date(request.loading_date))}
         </span>
       </div>
+      <Button type="button" variant="blue" size="md">
+        Откликнуться
+      </Button>
     </article>
   )
 }

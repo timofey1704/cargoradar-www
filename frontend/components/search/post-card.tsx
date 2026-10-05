@@ -3,6 +3,7 @@ import { CarFront, Clock3, Package, Wrench } from 'lucide-react'
 import { type SearchFeedItem } from '@/lib/search/get-feed'
 
 import { formatDateTime } from '@/lib/utils/datetime-formatter'
+import { Button } from '@/components/ui/button'
 
 function PostCard({ item }: { item: Extract<SearchFeedItem, { kind: 'post' }> }) {
   const post = item.post
@@ -45,7 +46,7 @@ function PostCard({ item }: { item: Extract<SearchFeedItem, { kind: 'post' }> })
         )}
       </div>
 
-      <div className="mt-5 flex items-center justify-between border-t border-gray-100 pt-4 text-xs text-gray-500">
+      <div className="my-5 flex items-center justify-between border-t border-gray-100 pt-4 text-xs text-gray-500">
         <span className="inline-flex items-center gap-1.5">
           <Clock3 size={14} /> {formatDateTime(item.created_at)}
         </span>
@@ -53,6 +54,9 @@ function PostCard({ item }: { item: Extract<SearchFeedItem, { kind: 'post' }> })
           <Package size={14} /> Публикация
         </span>
       </div>
+      <Button type="button" variant="orange" size="md">
+        Откликнуться
+      </Button>
     </article>
   )
 }

@@ -35,7 +35,7 @@ function MapViewport({ points }: { points: SearchMapMarker[] }) {
 
 export function SearchMapCanvas({ points }: { points: SearchMapMarker[] }) {
   return (
-    <div className="relative h-112 overflow-hidden rounded-xl border border-gray-200 bg-gray-100 lg:h-[calc(100vh-8rem)] lg:min-h-136">
+    <div className="relative h-112 overflow-hidden rounded-xl border border-gray-200 bg-gray-100 lg:h-[calc(100svh-6rem)] lg:min-h-0">
       <MapContainer center={DEFAULT_CENTER} zoom={7} className="h-full w-full" scrollWheelZoom>
         <TileLayer
           attribution="&copy; OpenStreetMap contributors"

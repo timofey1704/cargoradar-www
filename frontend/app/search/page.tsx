@@ -1,5 +1,5 @@
 import { SearchResults } from '@/components/search/search-results'
-import { SearchMap } from '@/components/search/search-map'
+import { SearchResultsLayout } from '@/components/layouts/search-results-layout'
 import { SearchFeedHighlight } from '@/components/search/search-feed-highlight'
 import { searchCategories } from '@/config/navigation'
 import { getFeed } from '@/lib/search/get-feed'
@@ -7,14 +7,14 @@ import { getFeed } from '@/lib/search/get-feed'
 const SearchPage = async () => {
   const feed = await getFeed()
   const mapPoints = feed.items.flatMap(item =>
-    item.map_points.map((point, index) => {
+    item.map_points.slice(0, 1).map(point => {
       const route = item.kind === 'route' ? item.route : null
       const request = item.kind === 'request' ? item.request : null
       const itemId = `${item.kind}-${item.id}`
 
       return {
         ...point,
-        id: `${itemId}-${index}`,
+        id: `${itemId}-0`,
         itemId,
         kind: item.kind === 'route' ? 'Маршрут водителя' : 'Заявка на перевозку',
         from: route?.point_a ?? request?.origin_address ?? null,
@@ -57,29 +57,13 @@ const SearchPage = async () => {
         </div>
       </section>
 
-      <div className="mt-8 grid gap-6 lg:grid-cols-2 lg:items-start">
-        <section className="min-w-0">
-          <div className="mb-5 flex items-center justify-between gap-3">
-            <div>
-              <p className="text-sm font-medium tracking-[0.08em] text-gray-400 uppercase">Лента</p>
-              <h2 className="text-text mt-1 text-2xl font-bold">Все результаты</h2>
-            </div>
-            <span className="rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-600">
-              {feed.total} записей
-            </span>
-          </div>
-
-          <SearchResults
-            items={feed.items}
-            emptyTitle="Пока нет публикаций"
-            emptyDescription="Новые маршруты и заявки появятся здесь."
-          />
-        </section>
-
-        <aside className="lg:sticky lg:top-6">
-          <SearchMap points={mapPoints} />
-        </aside>
-      </div>
+      <SearchResultsLayout points={mapPoints} total={feed.total}>
+        <SearchResults
+          items={feed.items}
+          emptyTitle="Пока нет публикаций"
+          emptyDescription="Новые маршруты и заявки появятся здесь."
+        />
+      </SearchResultsLayout>
     </main>
   )
 }

@@ -1,7 +1,7 @@
 import { VehicleType, CarType } from '../consts/vehicleTypes'
 import { CarBrand } from '@/consts/carBrands'
 
-interface VehicleBase {
+type VehicleBase = {
   type: VehicleType
   brand: CarBrand
   model: string
@@ -14,7 +14,7 @@ interface VehicleBase {
   VIN: string | null
 }
 
-export interface VehicleCreate extends VehicleBase {}
+export type VehicleCreate = VehicleBase
 
 export interface Car extends VehicleBase {
   id: number

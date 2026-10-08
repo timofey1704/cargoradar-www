@@ -40,14 +40,18 @@ function MapViewport({ origin, destination }: MapViewportProps) {
 
 export function RouteMap({ origin, destination }: RouteMapProps) {
   const [route, setRoute] = useState<RouteData | null>(null)
+  const [loadedRouteKey, setLoadedRouteKey] = useState<string | null>(null)
 
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const routeKey =
+    origin && destination
+      ? `${origin.latitude}:${origin.longitude}:${destination.latitude}:${destination.longitude}`
+      : null
+
   useEffect(() => {
     if (!origin || !destination) {
-      setRoute(null)
-      setError(null)
       return
     }
 
@@ -65,6 +69,7 @@ export function RouteMap({ origin, destination }: RouteMapProps) {
 
         if (!cancelled) {
           setRoute(data)
+          setLoadedRouteKey(routeKey)
         }
       } catch {
         if (!cancelled) {
@@ -83,7 +88,7 @@ export function RouteMap({ origin, destination }: RouteMapProps) {
     return () => {
       cancelled = true
     }
-  }, [origin, destination])
+  }, [origin, destination, routeKey])
 
   const center = useMemo(() => {
     if (origin) {
@@ -167,7 +172,7 @@ export function RouteMap({ origin, destination }: RouteMapProps) {
         </div>
       )}
 
-      {route && (
+      {route && routeKey === loadedRouteKey && (
         <div className="absolute right-4 bottom-4 left-4 z-20 flex items-center justify-center gap-6 rounded-xl bg-white/95 px-4 py-3 shadow-lg backdrop-blur-sm">
           <div>
             <p className="text-xs text-gray-500">Расстояние</p>

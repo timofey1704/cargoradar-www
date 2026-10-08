@@ -1,4 +1,4 @@
-import { useCallback, useLayoutEffect, useRef, useState } from 'react'
+import { useCallback, useLayoutEffect, useState } from 'react'
 
 export interface TabIndicatorStyle {
   left: number
@@ -22,24 +22,11 @@ export function useTabs<T extends string>(tabs: readonly T[], options: UseTabsOp
     opacity: 0,
   })
 
-  const refs = useRef(
-    Object.fromEntries(tabs.map(tab => [tab, { current: null }])) as {
-      [K in T]: React.RefObject<HTMLButtonElement | null>
-    }
-  ).current
+  const [tabElements, setTabElements] = useState<Record<T, HTMLButtonElement | null>>(
+    () => Object.fromEntries(tabs.map(tab => [tab, null])) as Record<T, HTMLButtonElement | null>
+  )
 
-  const updateIndicator = useCallback(() => {
-    if (!selectedTab) {
-      setIndicatorStyle(prev => ({
-        ...prev,
-        opacity: 0,
-      }))
-
-      return
-    }
-
-    const element = refs[selectedTab]?.current
-
+  const updateIndicator = useCallback((element: HTMLButtonElement | null) => {
     if (!element) {
       return
     }
@@ -49,25 +36,34 @@ export function useTabs<T extends string>(tabs: readonly T[], options: UseTabsOp
       width: element.offsetWidth,
       opacity: 1,
     })
-  }, [refs, selectedTab])
+  }, [])
 
-  useLayoutEffect(() => {
-    updateIndicator()
-  }, [updateIndicator])
+  const registerTab = useCallback(
+    (tab: T, element: HTMLButtonElement | null) => {
+      setTabElements(current =>
+        current[tab] === element ? current : { ...current, [tab]: element }
+      )
+
+      if (selectedTab === tab) {
+        updateIndicator(element)
+      }
+    },
+    [selectedTab, updateIndicator]
+  )
 
   useLayoutEffect(() => {
     if (!selectedTab) {
       return
     }
 
-    const element = refs[selectedTab]?.current
+    const element = tabElements[selectedTab]
 
     if (!element) {
       return
     }
 
     const observer = new ResizeObserver(() => {
-      updateIndicator()
+      updateIndicator(element)
     })
 
     observer.observe(element)
@@ -75,7 +71,7 @@ export function useTabs<T extends string>(tabs: readonly T[], options: UseTabsOp
     return () => {
       observer.disconnect()
     }
-  }, [refs, selectedTab, updateIndicator])
+  }, [tabElements, selectedTab, updateIndicator])
 
   const setTab = useCallback(
     (tab: T) => {
@@ -93,6 +89,7 @@ export function useTabs<T extends string>(tabs: readonly T[], options: UseTabsOp
     selectedTab,
     setTab,
     indicatorStyle,
-    refs,
+    tabElements,
+    registerTab,
   }
 }

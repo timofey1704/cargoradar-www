@@ -24,9 +24,12 @@ type OrderView = (typeof TABS)[number]['id']
 const TAB_IDS = TABS.map(tab => tab.id)
 
 export default function OrdersPage() {
-  const { selectedTab, setTab, indicatorStyle, refs } = useTabs<OrderView>(TAB_IDS, {
-    defaultTab: 'orders',
-  })
+  const { selectedTab, setTab, indicatorStyle, tabElements, registerTab } = useTabs<OrderView>(
+    TAB_IDS,
+    {
+      defaultTab: 'orders',
+    }
+  )
 
   return (
     <div>
@@ -42,7 +45,8 @@ export default function OrdersPage() {
         tabs={TABS}
         selectedTab={selectedTab}
         indicatorStyle={indicatorStyle}
-        refs={refs}
+        tabElements={tabElements}
+        registerTab={registerTab}
         onTabChange={setTab}
       />
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useSyncExternalStore } from 'react'
 import { createPortal } from 'react-dom'
 import type { BurgerProps } from '@/types'
 import Link from 'next/link'
@@ -10,13 +10,13 @@ import Logout from './logout'
 
 const Burger: React.FC<BurgerProps> = ({ navigation, accountType }) => {
   const [isOpen, setIsOpen] = useState(false)
-  const [mounted, setMounted] = useState(false)
+  const mounted = useSyncExternalStore(
+    () => () => undefined,
+    () => typeof document !== 'undefined',
+    () => false
+  )
 
   const pathname = usePathname()
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
 
   const menuContent = (
     <div

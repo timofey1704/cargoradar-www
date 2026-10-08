@@ -1,4 +1,4 @@
-import type { ReactNode, RefObject, KeyboardEvent } from 'react'
+import type { ReactNode, KeyboardEvent } from 'react'
 
 export interface TabConfig<T extends string> {
   id: T
@@ -15,9 +15,8 @@ interface TabsContainerProps<T extends string> {
     width: number
     opacity?: number
   }
-  refs: {
-    [K in T]: RefObject<HTMLButtonElement | null>
-  }
+  tabElements: Record<T, HTMLButtonElement | null>
+  registerTab: (tab: T, element: HTMLButtonElement | null) => void
   onTabChange: (tab: T) => void
   rightContent?: ReactNode
 }
@@ -26,7 +25,8 @@ export function TabsContainer<T extends string>({
   tabs,
   selectedTab,
   indicatorStyle,
-  refs,
+  tabElements,
+  registerTab,
   onTabChange,
   rightContent,
 }: TabsContainerProps<T>) {
@@ -63,7 +63,7 @@ export function TabsContainer<T extends string>({
     }
 
     onTabChange(nextTab.id)
-    refs[nextTab.id]?.current?.focus()
+    tabElements[nextTab.id]?.focus()
   }
 
   return (
@@ -77,7 +77,7 @@ export function TabsContainer<T extends string>({
               return (
                 <button
                   key={tab.id}
-                  ref={refs[tab.id]}
+                  ref={element => registerTab(tab.id, element)}
                   type="button"
                   role="tab"
                   aria-selected={isSelected}

@@ -11,6 +11,7 @@ type VehicleBase = {
   license_plate: string
   manufacture_year: number
   photo_url: string | null
+  price_per_km?: string | number | null
   VIN: string | null
 }
 
@@ -19,4 +20,5 @@ export type VehicleCreate = VehicleBase
 export interface Car extends VehicleBase {
   id: number
   executor_id: number
+  is_deleted: boolean
 }

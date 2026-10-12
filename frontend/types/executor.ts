@@ -1,4 +1,4 @@
-import { Car } from './car'
+import type { Car } from './car'
 export interface Executor {
   id: number
   name: string
@@ -15,7 +15,7 @@ export interface Executor {
       name: string
     }
   } | null
-  car?: Car
+  cars?: Car[]
   supplier?: Supplier
   service?: Service
 }

@@ -1,6 +1,7 @@
 'use client'
 
 import { useMutation } from '@tanstack/react-query'
+import { useQueryClient } from '@tanstack/react-query'
 import { FormProvider, useWatch } from 'react-hook-form'
 import { z } from 'zod'
 
@@ -8,6 +9,8 @@ import { useAppForm } from '@/hooks/use-app-form'
 import { createExecutorVehicles } from '@/lib/executorAccount/vehicles'
 import { carSchema } from '@/schemas/car/carSchema'
 import CarrierFields from '@/app/(auth)/register/executor/components/CarrierFields'
+
+import { Button } from '@/components/ui/button'
 
 const createCarsSchema = z.object({
   cars: z.array(carSchema).min(1, 'Добавьте хотя бы один автомобиль'),
@@ -18,6 +21,7 @@ interface CreateCarProps {
 }
 
 export default function CreateCar({ onCreated }: CreateCarProps) {
+  const queryClient = useQueryClient()
   const { form, handleSubmit } = useAppForm({
     schema: createCarsSchema,
     defaultValues: { cars: [] },
@@ -28,7 +32,8 @@ export default function CreateCar({ onCreated }: CreateCarProps) {
 
   const createCars = useMutation({
     mutationFn: createExecutorVehicles,
-    onSuccess: () => {
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['current-executor'] })
       form.reset({ cars: [] })
       onCreated?.()
     },
@@ -50,13 +55,14 @@ export default function CreateCar({ onCreated }: CreateCarProps) {
         )}
 
         {hasCars && (
-          <button
-            type="submit"
-            disabled={createCars.isPending}
-            className="flex h-12 w-full items-center justify-center rounded-xl bg-orange-500 px-5 text-sm font-semibold text-white transition-colors hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {createCars.isPending ? 'Сохраняем...' : 'Сохранить автомобили'}
-          </button>
+          <Button
+            disabled={form.formState.isSubmitting || createCars.isPending}
+            variant="blue"
+            isSubmitting={createCars.isPending}
+            defaultText="Добавить авто"
+            loadingText="Добавляем..."
+            showArrow={false}
+          />
         )}
       </form>
     </FormProvider>

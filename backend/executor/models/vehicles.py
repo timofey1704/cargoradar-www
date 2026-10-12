@@ -48,6 +48,7 @@ class Vehicle(Base):
     photo_url: Mapped[str] = mapped_column(String(255), nullable=True)
     price_per_km: Mapped[int] = mapped_column(Integer, nullable=True)
     VIN: Mapped[str] = mapped_column(String(17), nullable=True, unique=True)
+    is_deleted: Mapped[bool] = mapped_column(nullable=False, default=False, server_default="false")
     
     __table_args__ = (
         CheckConstraint(

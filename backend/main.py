@@ -25,6 +25,7 @@ from executor.routes.auth import router as executor_auth_router
 from executor.routes.support import router as executor_support_router
 from executor.routes.membership import router as executor_membership_router
 from executor.routes.profile import router as executor_profile_router
+from executor.routes.vehicles import router as executor_vehicles_router
 
 from client.routes.auth import router as client_auth_router
 from client.routes.profile import router as client_profile_router
@@ -43,14 +44,6 @@ app = FastAPI(
     description="Backend application contests server logic",
     version="0.1.0",
 )
-
-def _mask_sensitive(data: dict) -> dict:
-    """Маскируем пароль в логах — не пишем его в открытом виде."""
-    masked = dict(data)
-    if "password" in masked:
-        masked["password"] = "***"
-    return masked
-
 
 def _json_safe(value: object) -> object:
     """Рекурсивно приводит значение к JSON-сериализуемому виду.
@@ -135,6 +128,7 @@ app.include_router(executor_auth_router, prefix="/api/executor") # автори�
 app.include_router(executor_support_router, prefix="/api/executor") # саппорт исполнителей: /api/executor/account/support*
 app.include_router(executor_membership_router, prefix="/api/executor") # тарифы и подписка исполнителей: /api/executor/membership/*
 app.include_router(executor_profile_router, prefix="/api/executor") # профиль исполнителей: /api/executor/profile/*
+app.include_router(executor_vehicles_router, prefix="/api/executor") # транспорт исполнителей: /api/executor/vehicles/*
 
 app.include_router(client_auth_router, prefix="/api/client") # авторизация клиентов: /api/client/auth/*
 app.include_router(client_profile_router, prefix="/api/client") # профиль клиентов: /api/client/profile/*

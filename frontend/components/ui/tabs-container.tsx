@@ -1,4 +1,4 @@
-import type { ReactNode, KeyboardEvent } from 'react'
+import { useMemo, type ReactNode, type KeyboardEvent } from 'react'
 
 export interface TabConfig<T extends string> {
   id: T
@@ -30,6 +30,17 @@ export function TabsContainer<T extends string>({
   onTabChange,
   rightContent,
 }: TabsContainerProps<T>) {
+  const tabRefs = useMemo(
+    () =>
+      new Map(
+        tabs.map(tab => [
+          tab.id,
+          (element: HTMLButtonElement | null) => registerTab(tab.id, element),
+        ])
+      ),
+    [registerTab, tabs]
+  )
+
   const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>, currentIndex: number) => {
     let nextIndex: number | null = null
 
@@ -77,7 +88,7 @@ export function TabsContainer<T extends string>({
               return (
                 <button
                   key={tab.id}
-                  ref={element => registerTab(tab.id, element)}
+                  ref={tabRefs.get(tab.id)}
                   type="button"
                   role="tab"
                   aria-selected={isSelected}

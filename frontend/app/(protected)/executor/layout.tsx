@@ -9,7 +9,12 @@ import type { NavigationItem } from '@/types'
 
 const executorNavigation: NavigationItem[] = [
   { name: 'Профиль', href: '/executor', icon: User },
-  { name: 'Заказы', href: '/executor/orders', icon: Package },
+  {
+    name: 'Предложения',
+    href: '/executor/proposals',
+    icon: Package,
+    visibleFor: ['service', 'supplier'],
+  },
   { name: 'Гараж', href: '/executor/garage', icon: CarFront, visibleFor: ['carrier'] },
   { name: 'Отклики', href: '/executor/distinctions', icon: MessageSquareReply },
   { name: 'Поддержка', href: '/executor/support', icon: Headset },

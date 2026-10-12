@@ -5,21 +5,33 @@ import { FormInput } from '@/components/ui/form-input'
 import { FormMediaInput } from '@/components/ui/form-media-input'
 import { FormSelect } from '@/components/ui/form-select'
 import { objectToSelectOptions } from '@/lib/utils/select'
-import type { RegisterFormInput } from '@/schemas/auth/register/executorSchema'
+import type { CarFormInput } from '@/schemas/car/carSchema'
 import { CarTypesNames } from '@/schemas/car/carSchema'
 
 import { carBrandOptions } from '../utils/carBrandOptions'
 import { createEmptyCar } from '../utils/createEmptyCar'
 
-const CarrierFields = () => {
-  const form = useFormContext<RegisterFormInput>()
+type CarrierFieldsForm = { cars: CarFormInput[] }
+
+interface CarrierFieldsProps {
+  isRegister?: boolean
+}
+
+const CarrierFields = ({ isRegister }: CarrierFieldsProps) => {
+  const addCarButtonStyles = {
+    isRegister: isRegister
+      ? 'flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-dashed border-gray-300 text-sm font-medium text-gray-600 transition-all hover:border-orange-400 hover:bg-orange-50/30 hover:text-orange-600'
+      : 'flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-dashed border-gray-900 text-sm font-medium text-gray-900 transition-all hover:border-orange-400 hover:bg-orange-50/30 hover:text-orange-600',
+  }
+
+  const form = useFormContext<CarrierFieldsForm>()
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: 'cars',
   })
 
-  const carsError = 'cars' in form.formState.errors ? form.formState.errors.cars : undefined
+  const carsError = form.formState.errors.cars
 
   const handleAddCar = () => {
     append(createEmptyCar())
@@ -32,13 +44,15 @@ const CarrierFields = () => {
   return (
     <div className="mt-2 border-t border-gray-100 pt-6">
       <div className="mb-4 flex items-center justify-between gap-3">
-        <div>
-          <h3 className="text-sm font-semibold text-gray-900">Транспорт</h3>
-          <p className="mt-1 text-xs text-gray-500">Добавьте один или несколько автомобилей</p>
-        </div>
+        {isRegister && (
+          <div>
+            <h3 className="text-sm font-semibold text-gray-900">Транспорт</h3>
+            <p className="mt-1 text-xs text-gray-500">Добавьте один или несколько автомобилей</p>
+          </div>
+        )}
 
         {fields.length > 0 && (
-          <span className="text-xs font-medium text-gray-400">
+          <span className="text-xs font-medium text-gray-700">
             {fields.length}{' '}
             {fields.length === 1 ? 'автомобиль' : fields.length < 5 ? 'автомобиля' : 'автомобилей'}
           </span>
@@ -66,14 +80,14 @@ const CarrierFields = () => {
 
             <div className="flex flex-col gap-4">
               <div className="grid gap-4 sm:grid-cols-2">
-                <FormSelect<RegisterFormInput>
+                <FormSelect<CarrierFieldsForm>
                   name={`cars.${index}.brand`}
                   label="Марка"
                   placeholder="Выберите марку"
                   options={carBrandOptions}
                 />
 
-                <FormInput<RegisterFormInput>
+                <FormInput<CarrierFieldsForm>
                   name={`cars.${index}.model`}
                   label="Модель"
                   placeholder="TGX"
@@ -81,7 +95,7 @@ const CarrierFields = () => {
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
-                <FormInput<RegisterFormInput>
+                <FormInput<CarrierFieldsForm>
                   name={`cars.${index}.cargo_capacity`}
                   label="Грузоподъёмность, т"
                   placeholder="20"
@@ -93,7 +107,7 @@ const CarrierFields = () => {
                   }}
                 />
 
-                <FormInput<RegisterFormInput>
+                <FormInput<CarrierFieldsForm>
                   name={`cars.${index}.volume_capacity`}
                   label="Объём, м³"
                   placeholder="82"
@@ -107,14 +121,14 @@ const CarrierFields = () => {
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
-                <FormSelect<RegisterFormInput>
+                <FormSelect<CarrierFieldsForm>
                   name={`cars.${index}.car_type`}
                   label="Тип кузова"
                   placeholder="Выберите тип кузова"
                   options={objectToSelectOptions(CarTypesNames)}
                 />
 
-                <FormInput<RegisterFormInput>
+                <FormInput<CarrierFieldsForm>
                   name={`cars.${index}.manufacture_year`}
                   label="Год выпуска"
                   placeholder="2022"
@@ -127,7 +141,7 @@ const CarrierFields = () => {
                   }}
                 />
               </div>
-              <FormInput<RegisterFormInput>
+              <FormInput<CarrierFieldsForm>
                 name={`cars.${index}.price_per_km`}
                 label="Цена за 1 км"
                 placeholder="3 рубля"
@@ -140,20 +154,20 @@ const CarrierFields = () => {
                 }}
               />
               <div className="grid gap-4 sm:grid-cols-2">
-                <FormInput<RegisterFormInput>
+                <FormInput<CarrierFieldsForm>
                   name={`cars.${index}.license_plate`}
                   label="Номерной знак"
                   placeholder="1234 AB-7"
                 />
 
-                <FormInput<RegisterFormInput>
+                <FormInput<CarrierFieldsForm>
                   name={`cars.${index}.VIN`}
                   label="VIN"
                   placeholder="17 символов"
                 />
               </div>
 
-              <FormMediaInput<RegisterFormInput>
+              <FormMediaInput<CarrierFieldsForm>
                 name={`cars.${index}.photo`}
                 label="Фотография автомобиля"
               />
@@ -161,11 +175,7 @@ const CarrierFields = () => {
           </div>
         ))}
 
-        <button
-          type="button"
-          onClick={handleAddCar}
-          className="flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-dashed border-gray-300 text-sm font-medium text-gray-600 transition-all hover:border-orange-400 hover:bg-orange-50/30 hover:text-orange-600"
-        >
+        <button type="button" onClick={handleAddCar} className={addCarButtonStyles.isRegister}>
           <Plus className="size-4" />
           {fields.length > 0 ? 'Добавить ещё автомобиль' : 'Добавить автомобиль'}
         </button>

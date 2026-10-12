@@ -147,7 +147,7 @@ export default function RegisterPage() {
                     placeholder="Выберите тип аккаунта"
                   />
 
-                  {accountType === 'carrier' && <CarrierFields />}
+                  {accountType === 'carrier' && <CarrierFields isRegister={true} />}
                   {accountType === 'supplier' && <SupplierFields />}
                   {accountType === 'service' && <ServiceFields />}
 

@@ -88,5 +88,6 @@ export type CarFormInput = {
   license_plate?: string
   manufacture_year?: number
   photo?: File
+  price_per_km?: string
   VIN?: string
 }

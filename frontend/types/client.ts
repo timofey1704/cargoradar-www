@@ -4,7 +4,7 @@ interface BaseClient {
   name: string
   email: string
   phone_number: string
-  image?: string
+  image_url?: string
   VIN_code: string | null
   membership?: string
   is_notifications_enabled: boolean

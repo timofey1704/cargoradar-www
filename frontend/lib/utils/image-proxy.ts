@@ -7,7 +7,10 @@ export function getProxiedImageUrl(backendUrl: string | null | undefined): strin
     return '/images/no-photo.png' // fallback изображение
   }
 
-  // если это уже относительный URL или внешний URL (не локальный), возвращаем как есть
+  if (backendUrl.startsWith('/uploads/')) {
+    return `/api/media${backendUrl}`
+  }
+
   if (
     backendUrl.startsWith('/') ||
     (!backendUrl.includes('127.0.0.1') && !backendUrl.includes('localhost'))
@@ -17,11 +20,10 @@ export function getProxiedImageUrl(backendUrl: string | null | undefined): strin
 
   try {
     const url = new URL(backendUrl)
-    // извлекаем путь после /media/
-    const mediaPath = url.pathname.replace('/media/', '')
-
-    // возвращаем проксированный URL через API route
-    return `/api/media/${mediaPath}`
+    const path = url.pathname.startsWith('/uploads/')
+      ? url.pathname.slice(1)
+      : url.pathname.replace(/^\/media\//, '')
+    return `/api/media/${path}`
   } catch (error) {
     console.error('Error parsing image URL:', error)
     return '/images/no-photo.png'

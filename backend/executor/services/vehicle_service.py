@@ -12,6 +12,9 @@ class VehicleService:
     async def create_many(self, executor_id: int, cars: list[VehicleCreate]) -> list[Vehicle]:
         return await self.repository.create_many(executor_id, cars)
 
+    async def get_active(self, executor_id: int, vehicle_id: int) -> Vehicle | None:
+        return await self.repository.get_active_by_id(executor_id, vehicle_id)
+
     async def update(
         self,
         executor_id: int,

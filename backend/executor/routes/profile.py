@@ -1,6 +1,9 @@
-from fastapi import APIRouter, HTTPException, status
+from pathlib import Path
+
+from fastapi import APIRouter, File, HTTPException, UploadFile, status
 
 from core.dependencies import CurrentExecutor, DbSession
+from core.utils.image_upload import handle_image_upload
 
 from executor.exceptions import (
     DuplicateFieldError,
@@ -21,6 +24,23 @@ from executor.services.executor_service import ExecutorService, build_executor_r
 router = APIRouter(prefix="/profile", tags=["executor profile"])
 
 _LEGAL_FIELDS = {"legal_name", "unp", "address", "brands"}
+
+
+@router.post("/update-photo/", status_code=status.HTTP_200_OK)
+async def update_profile_photo(
+    current: CurrentExecutor,
+    db: DbSession,
+    image: UploadFile = File(...),
+) -> dict[str, object]:
+    await handle_image_upload(
+        image,
+        entity=current,
+        field_name="image_url",
+        db=db,
+        storage_directory=Path("uploads/executors") / str(current.id),
+        public_directory=f"/uploads/executors/{current.id}",
+    )
+    return {"user": {"image": current.image_url}, "message": "Фотография обновлена"}
 
 
 @router.patch("/update-data", response_model=ExecutorRead, status_code=status.HTTP_200_OK)

@@ -38,7 +38,7 @@ const AccountSidebar: React.FC<AccountSidebarProps> = ({ accountType, user, navi
         <div className="flex items-center space-x-3">
           <div className="flex items-center justify-center">
             <Image
-              src={getProxiedImageUrl(user.image)}
+              src={getProxiedImageUrl(user.image_url)}
               alt="profile image"
               height={90}
               width={90}

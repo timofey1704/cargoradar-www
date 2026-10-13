@@ -34,8 +34,8 @@ const ProfilePage = () => {
 
   const { fileInputRef, previewUrl, handlePhotoChange, handleFileChange } = useProfileImageUpload({
     endpoint: `${process.env.NEXT_PUBLIC_API_URL}/executor/profile/update-photo/`,
-    currentImage: executor?.image,
-    onUploaded: image => executor && setExecutor({ ...executor, image }),
+    currentImage: executor?.image_url,
+    onUploaded: image => executor && setExecutor({ ...executor, image_url: image }),
   })
 
   const handleSubmit = form.handleSubmit(async values => {
@@ -61,7 +61,7 @@ const ProfilePage = () => {
             emailField="email"
             fileInputRef={fileInputRef}
             previewUrl={previewUrl}
-            currentImage={executor?.image}
+            currentImage={executor?.image_url}
             onPhotoChange={handlePhotoChange}
             onFileChange={handleFileChange}
           />

@@ -8,7 +8,6 @@ function toBackendPayload(values: EditProfileFormOutput) {
     phone_number: values.phone_number,
     email: values.email,
     is_notifications_enabled: values.isNotificationsEnabled,
-    image: values.image,
   }
 
   switch (values.type) {

@@ -6,7 +6,7 @@ export function getEditProfileDefaultValues(executor: Executor | null): EditProf
     name: executor?.name ?? '',
     phone_number: executor?.phone_number ?? '',
     email: executor?.email ?? '',
-    image: executor?.image ?? '',
+    image: executor?.image_url ?? '',
     isNotificationsEnabled: executor?.is_notifications_enabled ?? false,
   }
 

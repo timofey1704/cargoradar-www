@@ -29,7 +29,7 @@ const ProfilePage = () => {
     defaultValues: {
       name: client?.name || '',
       phoneNumber: client?.phone_number || '',
-      image: client?.image || '',
+      image: client?.image_url || '',
       email: client?.email || '',
       vinCode: client?.VIN_code || '',
       isNotificationsEnabled: client?.is_notifications_enabled ?? false,
@@ -40,9 +40,9 @@ const ProfilePage = () => {
   })
 
   const { fileInputRef, previewUrl, handlePhotoChange, handleFileChange } = useProfileImageUpload({
-    endpoint: `${process.env.NEXT_PUBLIC_API_URL}/account/profile/update-photo/`,
-    currentImage: client?.image,
-    onUploaded: image => client && setClient({ ...client, image }),
+    endpoint: `${process.env.NEXT_PUBLIC_API_URL}/client/profile/update-photo/`,
+    currentImage: client?.image_url,
+    onUploaded: image => client && setClient({ ...client, image_url: image }),
   })
 
   const handleSubmit = form.handleSubmit(async values => {
@@ -68,7 +68,7 @@ const ProfilePage = () => {
             emailField="email"
             fileInputRef={fileInputRef}
             previewUrl={previewUrl}
-            currentImage={client?.image}
+            currentImage={client?.image_url}
             onPhotoChange={handlePhotoChange}
             onFileChange={handleFileChange}
             extraFields={

@@ -35,6 +35,7 @@ class VehicleUpdate(BaseModel):
     cargo_capacity: int | None = Field(default=None, gt=0)
     volume_capacity: int | None = Field(default=None, gt=0)
     license_plate: str | None = Field(default=None, min_length=1, max_length=10)
+    photo_url: str | None = Field(default=None, max_length=255)
 
     @model_validator(mode="after")
     def validate_update_fields(self) -> "VehicleUpdate":

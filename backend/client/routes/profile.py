@@ -1,6 +1,9 @@
-from fastapi import APIRouter, HTTPException, status
+from pathlib import Path
+
+from fastapi import APIRouter, File, HTTPException, UploadFile, status
 
 from core.dependencies import CurrentClient, DbSession
+from core.utils.image_upload import handle_image_upload
 
 from client.exceptions import (
     ClientError,
@@ -19,6 +22,23 @@ from client.services.client_service import ClientService, build_client_read
 router = APIRouter(prefix="/profile", tags=["client profile"])
 
 _LEGAL_FIELDS = {"legal_name", "unp", "address"}
+
+
+@router.post("/update-photo/", status_code=status.HTTP_200_OK)
+async def update_profile_photo(
+    current: CurrentClient,
+    db: DbSession,
+    image: UploadFile = File(...),
+) -> dict[str, object]:
+    await handle_image_upload(
+        image,
+        entity=current,
+        field_name="image_url",
+        db=db,
+        storage_directory=Path("uploads/clients") / str(current.id),
+        public_directory=f"/uploads/clients/{current.id}",
+    )
+    return {"user": {"image": current.image_url}, "message": "Фотография обновлена"}
 
 @router.patch("/update-data", response_model=ClientRead, status_code=status.HTTP_200_OK)
 async def update_profile_data(

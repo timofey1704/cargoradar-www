@@ -4,7 +4,7 @@ export interface Executor {
   name: string
   email: string
   phone_number: string
-  image?: string
+  image_url?: string
   type: 'carrier' | 'supplier' | 'service'
   price_per_km: number | null
   is_notifications_enabled: boolean

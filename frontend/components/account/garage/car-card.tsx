@@ -1,21 +1,24 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { CalendarDays, Gauge, Hash, Pencil, Ruler, Trash2, Truck } from 'lucide-react'
+import { CalendarDays, Gauge, Hash, ImagePlus, Pencil, Ruler, Trash2, Truck } from 'lucide-react'
 import { FormProvider } from 'react-hook-form'
+import type Slider from 'react-slick'
 import { z } from 'zod'
 
 import { FormInput } from '@/components/ui/form-input'
+import ImagesGallery from '@/components/ui/images-gallery'
 import Modal from '@/components/ui/modal'
 import { useAppForm } from '@/hooks/use-app-form'
 import {
   deleteExecutorVehicle,
+  deleteExecutorVehiclePhoto,
   updateExecutorVehicle,
+  uploadExecutorVehiclePhotos,
   type VehicleUpdatePayload,
 } from '@/lib/executorAccount/vehicles'
 import { CAR_BRAND_NAMES } from '@/consts/carBrands'
-import { getProxiedImageUrl } from '@/lib/utils/image-proxy'
 import { CarTypesNames } from '@/schemas/car/carSchema'
 import type { Car } from '@/types/car'
 
@@ -40,6 +43,8 @@ const CarCard = ({ car }: CarCardProps) => {
   const queryClient = useQueryClient()
   const brandName = CAR_BRAND_NAMES[car.brand] ?? car.brand
   const carTypeName = car.car_type ? CarTypesNames[car.car_type] : null
+  const sliderRef = useRef<Slider | null>(null)
+  const galleryItems = car.photos ?? []
   const deleteMutation = useMutation({
     mutationFn: () => deleteExecutorVehicle(car.id),
     onSuccess: async () => {
@@ -51,19 +56,18 @@ const CarCard = ({ car }: CarCardProps) => {
   return (
     <>
       <article className="overflow-hidden rounded-xl border border-gray-200 bg-white">
-        <div className="grid sm:grid-cols-[160px_minmax(0,1fr)]">
-          {car.photo_url ? (
-            <div
-              role="img"
-              aria-label={`${brandName} ${car.model}`}
-              className="min-h-40 bg-cover bg-center sm:min-h-full"
-              style={{ backgroundImage: `url("${getProxiedImageUrl(car.photo_url)}")` }}
-            />
-          ) : (
-            <div className="flex min-h-36 items-center justify-center bg-gray-50 text-gray-300 sm:min-h-full">
-              <Truck className="size-12" strokeWidth={1.25} />
-            </div>
-          )}
+        <div className="flex flex-col">
+          <div className="relative">
+            {galleryItems.length > 0 ? (
+              <div aria-label={`Фотографии: ${brandName} ${car.model}`}>
+                <ImagesGallery items={galleryItems} sliderRef={sliderRef} />
+              </div>
+            ) : (
+              <div className="flex h-48 w-full items-center justify-center bg-gray-50 text-gray-300 sm:h-56">
+                <Truck className="size-12" strokeWidth={1.25} />
+              </div>
+            )}
+          </div>
 
           <div className="min-w-0 p-4 sm:p-5">
             <div className="flex flex-wrap items-start justify-between gap-3">
@@ -167,6 +171,8 @@ interface EditVehicleModalProps {
 
 function EditVehicleModal({ car, onClose }: EditVehicleModalProps) {
   const queryClient = useQueryClient()
+  const photoInputRef = useRef<HTMLInputElement>(null)
+  const sliderRef = useRef<Slider | null>(null)
   const { form, handleSubmit } = useAppForm({
     schema: vehicleEditSchema,
     defaultValues: {
@@ -183,6 +189,18 @@ function EditVehicleModal({ car, onClose }: EditVehicleModalProps) {
       onClose()
     },
   })
+  const uploadPhotosMutation = useMutation({
+    mutationFn: (photos: File[]) => uploadExecutorVehiclePhotos(car.id, photos),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['current-executor'] })
+    },
+  })
+  const deletePhotoMutation = useMutation({
+    mutationFn: (photoId: number) => deleteExecutorVehiclePhoto(car.id, photoId),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['current-executor'] })
+    },
+  })
 
   const submit = handleSubmit(async values => {
     await updateMutation.mutateAsync(values)
@@ -191,11 +209,68 @@ function EditVehicleModal({ car, onClose }: EditVehicleModalProps) {
   return (
     <Modal
       isOpen
-      onClose={() => !updateMutation.isPending && onClose()}
+      onClose={() =>
+        !updateMutation.isPending &&
+        !uploadPhotosMutation.isPending &&
+        !deletePhotoMutation.isPending &&
+        onClose()
+      }
       title={`Изменить ${CAR_BRAND_NAMES[car.brand] ?? car.brand} ${car.model}`}
     >
       <FormProvider {...form}>
         <form onSubmit={submit} className="space-y-5 p-4 sm:p-6">
+          <section className="space-y-3" aria-label="Фотографии автомобиля">
+            <div className="flex items-center justify-between gap-3">
+              <h3 className="text-sm font-semibold text-gray-900">
+                Фотографии <span className="font-normal text-gray-500">({car.photos.length})</span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => photoInputRef.current?.click()}
+                disabled={uploadPhotosMutation.isPending}
+                className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg border border-gray-200 px-3 text-sm font-medium text-gray-700 hover:border-orange-300 hover:bg-orange-50 hover:text-orange-600 disabled:opacity-50"
+              >
+                <ImagePlus className="size-4" />
+                Добавить фото
+              </button>
+              <input
+                ref={photoInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={event => {
+                  const photos = Array.from(event.currentTarget.files ?? [])
+                  event.currentTarget.value = ''
+                  if (photos.length > 0) uploadPhotosMutation.mutate(photos)
+                }}
+              />
+            </div>
+            {car.photos.length > 0 ? (
+              <ImagesGallery
+                items={car.photos}
+                sliderRef={sliderRef}
+                onRemove={photoId => deletePhotoMutation.mutate(photoId)}
+                removingImageId={
+                  deletePhotoMutation.isPending ? deletePhotoMutation.variables : undefined
+                }
+              />
+            ) : (
+              <p className="rounded-lg border border-dashed border-gray-300 px-4 py-6 text-center text-sm text-gray-500">
+                Фотографий пока нет
+              </p>
+            )}
+            {uploadPhotosMutation.isError && (
+              <p role="alert" className="text-sm text-red-600">
+                {uploadPhotosMutation.error.message || 'Не удалось загрузить фотографии'}
+              </p>
+            )}
+            {deletePhotoMutation.isError && (
+              <p role="alert" className="text-sm text-red-600">
+                {deletePhotoMutation.error.message || 'Не удалось удалить фотографию'}
+              </p>
+            )}
+          </section>
           <FormInput<VehicleEditValues>
             name="cargo_capacity"
             label="Грузоподъёмность, кг"

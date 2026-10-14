@@ -12,12 +12,13 @@ function normalizeRegisterPayload(values: RegisterValues): Record<string, unknow
 
   const normalized: Record<string, unknown> = { ...values }
 
-  // carrier: JSON.stringify не сериализует File (photo),
+  // carrier: JSON.stringify не сериализует File (photos),
   // а отдельного эндпоинта для загрузки фото пока нет — убираем поле.
   if (normalized.type === 'carrier' && Array.isArray(normalized.cars)) {
     normalized.cars = normalized.cars.map(car => {
-      const { photo: _photo, ...rest } = car as { photo?: File } & Record<string, unknown>
-      return rest
+      const vehicle = { ...car } as { photos?: File[] } & Record<string, unknown>
+      delete vehicle.photos
+      return vehicle
     })
   }
 

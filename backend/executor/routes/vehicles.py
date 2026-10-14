@@ -6,8 +6,9 @@ from pydantic import Field
 from sqlalchemy.exc import IntegrityError
 
 from core.dependencies import CurrentExecutor, DbSession
-from core.utils.image_upload import handle_image_upload
+from core.utils.image_upload import ImageUploadError, store_image_upload
 from executor.models.enums.executor_types import ExecutorTypes
+from executor.models.vehicles import VehiclePhoto
 from executor.schemas.vehicle import VehicleCreate, VehicleRead, VehicleUpdate
 from executor.services.vehicle_service import VehicleService
 
@@ -69,12 +70,12 @@ async def update_vehicle(
         ) from error
 
 
-@router.post("/{vehicle_id}/photo", response_model=VehicleRead)
-async def upload_vehicle_photo(
+@router.post("/{vehicle_id}/photos", response_model=VehicleRead)
+async def upload_vehicle_photos(
     vehicle_id: int,
     current: CurrentExecutor,
     db: DbSession,
-    photo: UploadFile = File(...),
+    photos: Annotated[list[UploadFile], File(...)],
 ) -> VehicleRead:
     _require_carrier(current)
     service = VehicleService(db)
@@ -82,15 +83,58 @@ async def upload_vehicle_photo(
     if vehicle is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Автомобиль не найден")
 
-    await handle_image_upload(
-        photo,
-        entity=vehicle,
-        field_name="photo_url",
-        db=db,
-        storage_directory=Path("uploads/vehicles") / str(current.id) / str(vehicle_id),
-        public_directory=f"/uploads/vehicles/{current.id}/{vehicle_id}",
-    )
+    storage_directory = Path("uploads/vehicles") / str(current.id) / str(vehicle_id)
+    public_directory = f"/uploads/vehicles/{current.id}/{vehicle_id}"
+    uploaded_paths: list[Path] = []
+    next_position = max((photo.position for photo in vehicle.photos), default=-1) + 1
+
+    try:
+        for offset, upload in enumerate(photos):
+            image = await store_image_upload(
+                upload,
+                storage_directory=storage_directory,
+                public_directory=public_directory,
+            )
+            uploaded_paths.append(storage_directory / Path(image).name)
+            vehicle.photos.append(
+                VehiclePhoto(image=image, position=next_position + offset)
+            )
+        await db.commit()
+    except ImageUploadError as error:
+        await db.rollback()
+        for path in uploaded_paths:
+            path.unlink(missing_ok=True)
+        raise HTTPException(status_code=error.status_code, detail=str(error)) from error
+    except Exception:
+        await db.rollback()
+        for path in uploaded_paths:
+            path.unlink(missing_ok=True)
+        raise
+
     return VehicleRead.model_validate(vehicle)
+
+
+@router.delete("/{vehicle_id}/photos/{photo_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_vehicle_photo(
+    vehicle_id: int,
+    photo_id: int,
+    current: CurrentExecutor,
+    db: DbSession,
+) -> Response:
+    _require_carrier(current)
+    vehicle = await VehicleService(db).get_active(current.id, vehicle_id)
+    if vehicle is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Автомобиль не найден")
+
+    photo = next((item for item in vehicle.photos if item.id == photo_id), None)
+    if photo is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Фото не найдено")
+
+    image_path = Path("uploads/vehicles") / str(current.id) / str(vehicle_id) / Path(photo.image).name
+    await db.delete(photo)
+    await db.commit()
+    image_path.unlink(missing_ok=True)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.delete("/{vehicle_id}", status_code=status.HTTP_204_NO_CONTENT)

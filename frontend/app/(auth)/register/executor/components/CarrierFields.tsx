@@ -167,10 +167,12 @@ const CarrierFields = ({ isRegister }: CarrierFieldsProps) => {
                 />
               </div>
 
-              <FormMediaInput<CarrierFieldsForm>
-                name={`cars.${index}.photo`}
-                label="Фотография автомобиля"
-              />
+              {!isRegister && (
+                <FormMediaInput<CarrierFieldsForm>
+                  name={`cars.${index}.photos`}
+                  label="Фотографии автомобиля"
+                />
+              )}
             </div>
           </div>
         ))}

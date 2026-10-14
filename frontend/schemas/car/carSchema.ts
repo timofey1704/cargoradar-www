@@ -67,7 +67,7 @@ export const carSchema = z.object({
     .gte(1960, 'Год выпуска должен быть не меньше 1960')
     .lte(2026, 'Год выпуска должен быть не больше 2026'),
 
-  photo: z.instanceof(File).optional(),
+  photos: z.array(z.instanceof(File)).optional(),
   price_per_km: z.string().optional(),
 
   VIN: z
@@ -87,7 +87,7 @@ export type CarFormInput = {
   car_type?: CarType
   license_plate?: string
   manufacture_year?: number
-  photo?: File
+  photos?: File[]
   price_per_km?: string
   VIN?: string
 }

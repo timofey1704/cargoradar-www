@@ -24,6 +24,12 @@ class Vehicle(Base):
     executor: Mapped["Executor"] = relationship(
         back_populates="vehicles"
     )
+    photos: Mapped[list["VehiclePhoto"]] = relationship(
+        back_populates="vehicle",
+        cascade="all, delete-orphan",
+        order_by="VehiclePhoto.position",
+        lazy="selectin",
+    )
 
     type: Mapped[VehicleTypes] = mapped_column(
         SQLEnum(VehicleTypes),
@@ -45,7 +51,6 @@ class Vehicle(Base):
     SmallInteger,
     nullable=False,
 )
-    photo_url: Mapped[str] = mapped_column(String(255), nullable=True)
     price_per_km: Mapped[int] = mapped_column(Integer, nullable=True)
     VIN: Mapped[str] = mapped_column(String(17), nullable=True, unique=True)
     is_deleted: Mapped[bool] = mapped_column(nullable=False, default=False, server_default="false")
@@ -56,4 +61,18 @@ class Vehicle(Base):
             name="ck_vehicle_manufacture_year",
         ),
     )
+
+
+class VehiclePhoto(Base):
+    __tablename__ = "vehicle_photos"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    vehicle_id: Mapped[int] = mapped_column(
+        ForeignKey("vehicles.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    vehicle: Mapped["Vehicle"] = relationship(back_populates="photos")
+    image: Mapped[str] = mapped_column(String(255), nullable=False)
+    position: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     

@@ -8,6 +8,6 @@ export const createEmptyCar = (): CarFormOutput => ({
   car_type: 'sedan',
   license_plate: '',
   manufacture_year: 2024,
-  photo: undefined,
+  photos: [],
   VIN: '',
 })

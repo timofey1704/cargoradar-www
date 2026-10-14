@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { useQueryClient } from '@tanstack/react-query'
 import { FormProvider, useWatch } from 'react-hook-form'
@@ -21,6 +22,7 @@ interface CreateCarProps {
 }
 
 export default function CreateCar({ onCreated }: CreateCarProps) {
+  const [photoUploadWarning, setPhotoUploadWarning] = useState(false)
   const queryClient = useQueryClient()
   const { form, handleSubmit } = useAppForm({
     schema: createCarsSchema,
@@ -32,9 +34,10 @@ export default function CreateCar({ onCreated }: CreateCarProps) {
 
   const createCars = useMutation({
     mutationFn: createExecutorVehicles,
-    onSuccess: async () => {
+    onSuccess: async result => {
       await queryClient.invalidateQueries({ queryKey: ['current-executor'] })
       form.reset({ cars: [] })
+      setPhotoUploadWarning(result.photoUploadFailedCount > 0)
       onCreated?.()
     },
   })
@@ -51,6 +54,13 @@ export default function CreateCar({ onCreated }: CreateCarProps) {
         {createCars.isError && (
           <p role="alert" className="text-sm font-medium text-red-600">
             {createCars.error.message || 'Не удалось добавить автомобили'}
+          </p>
+        )}
+
+        {photoUploadWarning && (
+          <p role="status" className="text-sm font-medium text-amber-700">
+            Автомобили добавлены, но не все фотографии загрузились. Добавьте их в карточке
+            автомобиля.
           </p>
         )}
 

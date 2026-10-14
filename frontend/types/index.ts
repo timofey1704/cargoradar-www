@@ -31,3 +31,4 @@ export type {
   ChatConversation,
   CreateChatMessage,
 } from './chat'
+export type { ImagesSliderProps } from './slider'

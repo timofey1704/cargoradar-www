@@ -7,13 +7,45 @@ export type VehicleUpdatePayload = Pick<Car, 'cargo_capacity' | 'volume_capacity
 export async function createExecutorVehicles(cars: CarFormOutput[]) {
   const payload = cars.map(car => {
     const vehicle = { ...car }
-    delete vehicle.photo
+    delete vehicle.photos
     return vehicle
   })
 
-  return apiRequest('/executor/vehicles', {
+  const created = await apiRequest<Car[]>('/executor/vehicles', {
     method: 'POST',
     body: payload,
+  })
+
+  let photoUploadFailedCount = 0
+  await Promise.all(
+    created.map(async (vehicle, index) => {
+      const photos = cars[index]?.photos ?? []
+      if (photos.length === 0) return
+
+      try {
+        await uploadExecutorVehiclePhotos(vehicle.id, photos)
+      } catch {
+        photoUploadFailedCount += 1
+      }
+    })
+  )
+
+  return { cars: created, photoUploadFailedCount }
+}
+
+export async function uploadExecutorVehiclePhotos(vehicleId: number, photos: File[]) {
+  const body = new FormData()
+  photos.forEach(photo => body.append('photos', photo))
+
+  return apiRequest<Car>(`/executor/vehicles/${vehicleId}/photos`, {
+    method: 'POST',
+    body,
+  })
+}
+
+export async function deleteExecutorVehiclePhoto(vehicleId: number, photoId: number) {
+  return apiRequest<void>(`/executor/vehicles/${vehicleId}/photos/${photoId}`, {
+    method: 'DELETE',
   })
 }
 

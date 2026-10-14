@@ -22,7 +22,6 @@ class VehicleBase(BaseModel):
     license_plate: str = Field(min_length=1, max_length=10)
     price_per_km: str | None = None
     manufacture_year: int = Field(ge=1960, le=2026)
-    photo_url: str | None = Field(default=None, max_length=255)
     VIN: str | None = Field(default=None, min_length=1, max_length=17)
     is_deleted: bool = Field(default=False, description="Флаг удаления транспорта исполнителя")
 
@@ -35,8 +34,6 @@ class VehicleUpdate(BaseModel):
     cargo_capacity: int | None = Field(default=None, gt=0)
     volume_capacity: int | None = Field(default=None, gt=0)
     license_plate: str | None = Field(default=None, min_length=1, max_length=10)
-    photo_url: str | None = Field(default=None, max_length=255)
-
     @model_validator(mode="after")
     def validate_update_fields(self) -> "VehicleUpdate":
         if not self.model_fields_set:
@@ -47,10 +44,19 @@ class VehicleUpdate(BaseModel):
         return self
 
 
+class VehiclePhotoRead(BaseModel):
+    id: int
+    image: str
+    position: int
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class VehicleRead(VehicleBase):
     """Публичные данные транспорта исполнителя."""
 
     id: int
     executor_id: int
+    photos: list[VehiclePhotoRead] = Field(default_factory=list)
 
     model_config = ConfigDict(from_attributes=True)

@@ -40,6 +40,9 @@ class VehicleRepository:
         await self.db.flush()
 
     async def create_many(self, executor_id: int, cars: list["VehicleCreate"]) -> list[Vehicle]:
-        vehicles = [Vehicle(executor_id=executor_id, **car.model_dump()) for car in cars]
+        vehicles = [
+            Vehicle(executor_id=executor_id, photos=[], **car.model_dump())
+            for car in cars
+        ]
         self.db.add_all(vehicles)
         return vehicles

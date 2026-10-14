@@ -11,7 +11,7 @@ type VehicleBase = {
   car_type: CarType | null
   license_plate: string
   manufacture_year: number
-  price_per_km?: string | number | null
+  price_per_km?: number | null
   VIN: string | null
 }
 

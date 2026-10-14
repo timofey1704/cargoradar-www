@@ -23,6 +23,20 @@ def _require_carrier(current: CurrentExecutor) -> None:
         )
 
 
+def _vehicle_integrity_error_detail(error: IntegrityError) -> str:
+    original = error.orig
+    constraint_name = getattr(original, "constraint_name", None)
+    if constraint_name is None:
+        constraint_name = getattr(getattr(original, "diag", None), "constraint_name", None)
+    constraint_name = str(constraint_name or original).lower()
+
+    if "license_plate" in constraint_name:
+        return "Этот номерной знак уже используется другим автомобилем"
+    if "vin" in constraint_name:
+        return "Автомобиль с таким VIN уже существует"
+    return "Номерной знак или VIN уже используются другим автомобилем"
+
+
 @router.post("", response_model=list[VehicleRead], status_code=status.HTTP_201_CREATED)
 async def create_vehicles(
     cars: Annotated[list[VehicleCreate], Field(min_length=1)],
@@ -41,7 +55,7 @@ async def create_vehicles(
         await db.rollback()
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="Автомобиль с таким номерным знаком или VIN уже существует",
+            detail=_vehicle_integrity_error_detail(error),
         ) from error
 
 
@@ -66,7 +80,7 @@ async def update_vehicle(
         await db.rollback()
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="Автомобиль с таким номерным знаком уже существует",
+            detail=_vehicle_integrity_error_detail(error),
         ) from error
 
 

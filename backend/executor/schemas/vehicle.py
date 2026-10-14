@@ -20,7 +20,7 @@ class VehicleBase(BaseModel):
     volume_capacity: int | None = Field(default=None, gt=0, description="Объём, м³")
     car_type: CarTypes | None = None  # тип кузова
     license_plate: str = Field(min_length=1, max_length=10)
-    price_per_km: str | None = None
+    price_per_km: int | None = None
     manufacture_year: int = Field(ge=1960, le=2026)
     VIN: str | None = Field(default=None, min_length=1, max_length=17)
     is_deleted: bool = Field(default=False, description="Флаг удаления транспорта исполнителя")

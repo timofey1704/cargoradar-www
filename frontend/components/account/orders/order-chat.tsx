@@ -14,11 +14,13 @@ import {
   markChatRead,
   uploadChatAttachment,
 } from '@/lib/api/chat'
-import type { ChatAttachment, ChatMessage } from '@/types/chat'
+import { getProxiedImageUrl } from '@/lib/utils/image-proxy'
+import type { ChatActorType, ChatAttachment, ChatMessage } from '@/types/chat'
 
 interface OrderChatProps {
-  orderId: number
+  orderId?: number
   isOpen: boolean
+  currentRole?: Exclude<ChatActorType, 'system'>
 }
 
 interface ChatSocketEvent {
@@ -28,7 +30,7 @@ interface ChatSocketEvent {
   }
 }
 
-const CONVERSATIONS_KEY = (orderId: number) => ['chat', 'conversations', orderId] as const
+const CONVERSATIONS_KEY = (scope: number | 'all') => ['chat', 'conversations', scope] as const
 const MESSAGES_KEY = (conversationId: number) => ['chat', 'messages', conversationId] as const
 const EMPTY_MESSAGES: ChatMessage[] = []
 
@@ -51,7 +53,7 @@ const getLastMessageLabel = (message: ChatMessage | null) => {
   return 'Системное сообщение'
 }
 
-export default function OrderChat({ orderId, isOpen }: OrderChatProps) {
+export default function OrderChat({ orderId, isOpen, currentRole = 'client' }: OrderChatProps) {
   const queryClient = useQueryClient()
   const [selectedConversationId, setSelectedConversationId] = useState<number | null>(null)
   const [draft, setDraft] = useState('')
@@ -60,11 +62,16 @@ export default function OrderChat({ orderId, isOpen }: OrderChatProps) {
   const [liveStatus, setLiveStatus] = useState<'connecting' | 'connected' | 'disconnected'>(
     'connecting'
   )
-  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const messagesListRef = useRef<HTMLDivElement>(null)
 
   const conversationsQuery = useQuery({
-    queryKey: CONVERSATIONS_KEY(orderId),
-    queryFn: async () => (await getChatConversations()).filter(item => item.order_id === orderId),
+    queryKey: CONVERSATIONS_KEY(orderId ?? 'all'),
+    queryFn: async () => {
+      const conversations = await getChatConversations()
+      return orderId === undefined
+        ? conversations
+        : conversations.filter(item => item.order_id === orderId)
+    },
     enabled: isOpen,
   })
   const conversations = conversationsQuery.data ?? []
@@ -99,7 +106,7 @@ export default function OrderChat({ orderId, isOpen }: OrderChatProps) {
         if (!current || current.some(item => item.id === message.id)) return current
         return [...current, message]
       })
-      void queryClient.invalidateQueries({ queryKey: CONVERSATIONS_KEY(orderId) })
+      void queryClient.invalidateQueries({ queryKey: CONVERSATIONS_KEY(orderId ?? 'all') })
       setDraft('')
       setFiles([])
       setSendError(null)
@@ -113,13 +120,18 @@ export default function OrderChat({ orderId, isOpen }: OrderChatProps) {
     if (!isOpen || !selectedConversationId) return
     if (selectedConversation && selectedConversation.unread_count > 0 && messages.length > 0) {
       void markChatRead(selectedConversationId, messages[messages.length - 1].id)
-        .then(() => queryClient.invalidateQueries({ queryKey: CONVERSATIONS_KEY(orderId) }))
+        .then(() =>
+          queryClient.invalidateQueries({ queryKey: CONVERSATIONS_KEY(orderId ?? 'all') })
+        )
         .catch(() => undefined)
     }
   }, [isOpen, selectedConversationId, selectedConversation, messages, orderId, queryClient])
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    const messagesList = messagesListRef.current
+    if (messagesList) {
+      messagesList.scrollTo({ top: messagesList.scrollHeight, behavior: 'smooth' })
+    }
   }, [messages, selectedConversationId])
 
   useEffect(() => {
@@ -139,7 +151,7 @@ export default function OrderChat({ orderId, isOpen }: OrderChatProps) {
         reconnectDelay = 1000
         setLiveStatus('connected')
         socket?.send('ping')
-        void queryClient.invalidateQueries({ queryKey: CONVERSATIONS_KEY(orderId) })
+        void queryClient.invalidateQueries({ queryKey: CONVERSATIONS_KEY(orderId ?? 'all') })
         void queryClient.invalidateQueries({ queryKey: ['chat', 'messages'] })
       }
 
@@ -152,9 +164,9 @@ export default function OrderChat({ orderId, isOpen }: OrderChatProps) {
             void queryClient.invalidateQueries({
               queryKey: MESSAGES_KEY(payload.data.conversation_id),
             })
-            void queryClient.invalidateQueries({ queryKey: CONVERSATIONS_KEY(orderId) })
+            void queryClient.invalidateQueries({ queryKey: CONVERSATIONS_KEY(orderId ?? 'all') })
           } else if (payload.type === 'offer.updated') {
-            void queryClient.invalidateQueries({ queryKey: CONVERSATIONS_KEY(orderId) })
+            void queryClient.invalidateQueries({ queryKey: CONVERSATIONS_KEY(orderId ?? 'all') })
             void queryClient.invalidateQueries({ queryKey: ['chat', 'messages'] })
           }
         } catch {
@@ -218,8 +230,9 @@ export default function OrderChat({ orderId, isOpen }: OrderChatProps) {
     <section className="border-t border-gray-100 pt-5">
       <div className="flex items-center justify-between gap-3">
         <h3 className="text-text flex items-center gap-2 text-base font-semibold">
-          <span>Чаты по заказу</span>
-          {conversations.length > 0 && (
+          <span>{orderId === undefined ? null : 'Чаты по заказу'}</span>
+
+          {orderId !== undefined && conversations.length > 0 && (
             <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
               {conversations.length}
             </span>
@@ -233,9 +246,9 @@ export default function OrderChat({ orderId, isOpen }: OrderChatProps) {
         </span>
       </div>
 
-      <div className="mt-3 grid min-h-80 overflow-hidden rounded-xl border border-gray-200 md:grid-cols-[minmax(13rem,0.8fr)_minmax(0,1.5fr)]">
+      <div className="mt-3 grid h-[min(32rem,calc(100dvh-18rem))] min-h-64 overflow-hidden rounded-xl border border-gray-200 bg-white p-5 shadow-sm md:grid-cols-[minmax(13rem,0.8fr)_minmax(0,1.5fr)]">
         <div
-          className={`border-gray-100 md:border-r ${selectedConversationId ? 'hidden md:block' : 'block'}`}
+          className={`min-h-0 overflow-y-auto border-gray-100 md:border-r ${selectedConversationId ? 'hidden md:block' : 'block'}`}
         >
           {conversationsQuery.isPending ? (
             <div className="flex h-40 items-center justify-center text-gray-400">
@@ -244,10 +257,18 @@ export default function OrderChat({ orderId, isOpen }: OrderChatProps) {
           ) : conversationsQuery.isError ? (
             <div className="flex items-start gap-2 p-4 text-sm text-red-700">
               <CircleAlert size={18} className="mt-0.5 shrink-0" />
-              <p>Не удалось загрузить чаты. Закройте и снова откройте заказ.</p>
+              <p>
+                {orderId === undefined
+                  ? 'Не удалось загрузить чаты. Обновите страницу.'
+                  : 'Не удалось загрузить чаты. Закройте и снова откройте заказ.'}
+              </p>
             </div>
           ) : conversations.length === 0 ? (
-            <p className="p-4 text-sm text-gray-500">По этому заказу пока нет переписок.</p>
+            <p className="p-4 text-sm text-gray-500">
+              {orderId === undefined
+                ? 'Переписок пока нет.'
+                : 'По этому заказу пока нет переписок.'}
+            </p>
           ) : (
             <div className="divide-y divide-gray-100">
               {conversations.map(conversation => (
@@ -282,6 +303,12 @@ export default function OrderChat({ orderId, isOpen }: OrderChatProps) {
                         </span>
                       )}
                     </span>
+                    {orderId === undefined && (
+                      <span className="mt-1 block truncate text-[11px] text-gray-400">
+                        {conversation.order.origin_address} →{' '}
+                        {conversation.order.destination_address}
+                      </span>
+                    )}
                   </span>
                 </button>
               ))}
@@ -289,7 +316,9 @@ export default function OrderChat({ orderId, isOpen }: OrderChatProps) {
           )}
         </div>
 
-        <div className={`min-w-0 flex-col ${selectedConversationId ? 'flex' : 'hidden md:flex'}`}>
+        <div
+          className={`min-h-0 min-w-0 flex-col overflow-hidden ${selectedConversationId ? 'flex' : 'hidden md:flex'}`}
+        >
           {selectedConversation ? (
             <>
               <div className="flex items-center gap-3 border-b border-gray-100 px-3 py-2.5">
@@ -310,7 +339,10 @@ export default function OrderChat({ orderId, isOpen }: OrderChatProps) {
                 </p>
               </div>
 
-              <div className="flex min-h-48 flex-1 flex-col gap-3 overflow-y-auto bg-gray-50/60 p-3">
+              <div
+                ref={messagesListRef}
+                className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto bg-gray-50/60 p-3"
+              >
                 {messagesQuery.isPending ? (
                   <div className="flex flex-1 items-center justify-center text-gray-400">
                     <LoaderCircle size={22} className="animate-spin" />
@@ -320,9 +352,10 @@ export default function OrderChat({ orderId, isOpen }: OrderChatProps) {
                 ) : messages.length === 0 ? (
                   <p className="m-auto text-sm text-gray-500">Начните переписку.</p>
                 ) : (
-                  messages.map(message => <ChatMessageItem key={message.id} message={message} />)
+                  messages.map(message => (
+                    <ChatMessageItem key={message.id} message={message} currentRole={currentRole} />
+                  ))
                 )}
-                <div ref={messagesEndRef} />
               </div>
 
               <form onSubmit={handleSubmit} className="border-t border-gray-100 p-3">
@@ -363,6 +396,13 @@ export default function OrderChat({ orderId, isOpen }: OrderChatProps) {
                   <textarea
                     value={draft}
                     onChange={event => setDraft(event.target.value)}
+                    onKeyDown={event => {
+                      if (event.key === 'Enter' && !event.shiftKey) {
+                        event.preventDefault()
+                        if ((!draft.trim() && files.length === 0) || sendMutation.isPending) return
+                        sendMutation.mutate()
+                      }
+                    }}
                     maxLength={4000}
                     rows={1}
                     placeholder="Написать сообщение…"
@@ -399,7 +439,7 @@ function PeerAvatar({ name, imageUrl }: { name: string; imageUrl: string | null 
   if (imageUrl) {
     return (
       <Image
-        src={imageUrl}
+        src={getProxiedImageUrl(imageUrl)}
         alt=""
         width={40}
         height={40}
@@ -416,8 +456,14 @@ function PeerAvatar({ name, imageUrl }: { name: string; imageUrl: string | null 
   )
 }
 
-function ChatMessageItem({ message }: { message: ChatMessage }) {
-  const isMine = message.sender_type === 'client'
+function ChatMessageItem({
+  message,
+  currentRole,
+}: {
+  message: ChatMessage
+  currentRole: Exclude<ChatActorType, 'system'>
+}) {
+  const isMine = message.sender_type === currentRole
 
   if (message.type === 'system') {
     return (

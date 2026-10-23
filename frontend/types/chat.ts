@@ -11,6 +11,20 @@ export interface ChatAttachment {
   created_at: string
 }
 
+export interface ChatOffer {
+  id: number
+  conversation_id: number
+  author_type: Exclude<ChatActorType, 'system'>
+  author_client_id: number | null
+  author_executor_id: number | null
+  parent_offer_id: number | null
+  price: string
+  currency: string
+  terms: string | null
+  status: 'pending' | 'accepted' | 'declined' | 'countered' | 'withdrawn' | 'expired'
+  created_at: string
+}
+
 export interface ChatMessage {
   id: number
   conversation_id: number
@@ -20,6 +34,7 @@ export interface ChatMessage {
   type: ChatMessageType
   body: string | null
   offer_id: number | null
+  offer: ChatOffer | null
   attachments: ChatAttachment[]
   created_at: string
 }
@@ -53,14 +68,12 @@ export interface CreateChatMessage {
 
 export interface CreateOrderOffer {
   price: number
+  terms?: string
 }
 
-export interface OrderOffer {
-  id: number
-  conversation_id: number
-  price: string
-  currency: string
-  terms: string | null
-  status: 'pending' | 'accepted' | 'declined' | 'countered' | 'withdrawn' | 'expired'
-  created_at: string
+export type OrderOffer = ChatOffer
+
+export interface CreateCounterOffer {
+  price: number
+  terms?: string
 }

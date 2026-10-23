@@ -3,6 +3,7 @@ from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from core.models.enums.actor_types import ActorType
 from core.models.enums.offer_statuses import OfferStatus
 
 
@@ -16,6 +17,10 @@ class OfferCreate(BaseModel):
 class OfferRead(BaseModel):
     id: int
     conversation_id: int
+    author_type: ActorType
+    author_client_id: int | None = None
+    author_executor_id: int | None = None
+    parent_offer_id: int | None = None
     price: Decimal
     currency: str
     terms: str | None

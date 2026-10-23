@@ -17,6 +17,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from client.models.client import Client
+from client.models.enums.request_statuses import CargoRequestStatus
 from client.models.request import CargoRequest
 from core.models.chats.attachment import Attachment
 from core.models.chats.conversation import Conversation
@@ -136,7 +137,7 @@ class ChatRepository:
         stmt = (
             select(Message)
             .join(max_ids, Message.id == max_ids.c.message_id)
-            .options(selectinload(Message.attachments))
+            .options(selectinload(Message.attachments), selectinload(Message.offer))
         )
         messages = (await self.session.execute(stmt)).scalars().all()
         return {message.conversation_id: message for message in messages}
@@ -204,6 +205,19 @@ class ChatRepository:
         )
         return result.scalar_one_or_none()
 
+    async def get_offer_for_update(
+        self, conversation_id: int, offer_id: int
+    ) -> Offer | None:
+        result = await self.session.execute(
+            select(Offer)
+            .where(
+                Offer.id == offer_id,
+                Offer.conversation_id == conversation_id,
+            )
+            .with_for_update()
+        )
+        return result.scalar_one_or_none()
+
     async def create_offer_message(
         self,
         *,
@@ -237,6 +251,84 @@ class ChatRepository:
         await self.session.flush()
         return offer, message
 
+    async def create_counter_offer_message(
+        self,
+        *,
+        conversation: Conversation,
+        actor_type: ActorType,
+        actor_id: int,
+        parent_offer: Offer,
+        data: OfferCreate,
+    ) -> tuple[Offer, Message]:
+        offer = Offer(
+            conversation_id=conversation.id,
+            author_type=actor_type,
+            author_client_id=actor_id if actor_type is ActorType.client else None,
+            author_executor_id=actor_id if actor_type is ActorType.executor else None,
+            parent_offer_id=parent_offer.id,
+            price=data.price,
+            currency=parent_offer.currency,
+            terms=data.terms.strip() if data.terms and data.terms.strip() else None,
+        )
+        parent_offer.status = OfferStatus.countered
+        self.session.add(offer)
+        await self.session.flush()
+
+        message = Message(
+            conversation_id=conversation.id,
+            sender_type=actor_type,
+            sender_client_id=actor_id if actor_type is ActorType.client else None,
+            sender_executor_id=actor_id if actor_type is ActorType.executor else None,
+            type=MessageType.offer,
+            offer_id=offer.id,
+        )
+        self.session.add(message)
+        await self.session.flush()
+        await self.session.refresh(offer)
+        await self.session.refresh(message)
+        conversation.last_message_at = message.created_at
+        await self.session.flush()
+        return offer, message
+
+    async def accept_offer_for_order(
+        self,
+        *,
+        conversation: Conversation,
+        order: CargoRequest,
+        offer: Offer,
+        body: str,
+    ) -> tuple[Message, list[tuple[Offer, Conversation]]]:
+        offer.status = OfferStatus.accepted
+        order.status = CargoRequestStatus.IN_PROGRESS
+
+        result = await self.session.execute(
+            select(Offer, Conversation)
+            .join(Conversation, Conversation.id == Offer.conversation_id)
+            .where(
+                Conversation.order_id == order.id,
+                Offer.id != offer.id,
+                Offer.status == OfferStatus.pending,
+            )
+            .with_for_update()
+        )
+        closed_offers = list(result.tuples().all())
+        for pending_offer, _ in closed_offers:
+            pending_offer.status = OfferStatus.declined
+
+        await self.session.flush()
+        message = Message(
+            conversation_id=conversation.id,
+            sender_type=ActorType.system,
+            type=MessageType.system,
+            body=body,
+        )
+        self.session.add(message)
+        await self.session.flush()
+        await self.session.refresh(message)
+        conversation.last_message_at = message.created_at
+        await self.session.flush()
+        return message, closed_offers
+
     # сообщения 
 
     async def list_messages(
@@ -259,7 +351,7 @@ class ChatRepository:
         stmt = (
             select(Message)
             .where(Message.conversation_id == conversation_id)
-            .options(selectinload(Message.attachments))
+            .options(selectinload(Message.attachments), selectinload(Message.offer))
         )
 
         reverse = False
@@ -280,7 +372,7 @@ class ChatRepository:
         stmt = (
             select(Message)
             .where(Message.id == message_id)
-            .options(selectinload(Message.attachments))
+            .options(selectinload(Message.attachments), selectinload(Message.offer))
         )
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()

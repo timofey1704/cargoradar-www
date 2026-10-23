@@ -4,6 +4,7 @@ import type {
   ChatAttachment,
   ChatConversation,
   ChatMessage,
+  CreateCounterOffer,
   CreateChatMessage,
   CreateOrderOffer,
   OrderOffer,
@@ -32,6 +33,23 @@ export const createOrderOffer = (orderId: number, data: CreateOrderOffer) => {
   return apiRequest<OrderOffer>(`/executor/orders/${orderId}/offers`, {
     method: 'POST',
     body: data,
+  })
+}
+
+export const createCounterOffer = (
+  conversationId: number,
+  offerId: number,
+  data: CreateCounterOffer
+) => {
+  return apiRequest<OrderOffer>(`/conversations/${conversationId}/offers/${offerId}/counter`, {
+    method: 'POST',
+    body: data,
+  })
+}
+
+export const acceptChatOffer = (conversationId: number, offerId: number) => {
+  return apiRequest<OrderOffer>(`/conversations/${conversationId}/offers/${offerId}/accept`, {
+    method: 'POST',
   })
 }
 

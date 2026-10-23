@@ -12,6 +12,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from core.models.enums.actor_types import ActorType
 from core.models.enums.message_types import MessageType
+from core.schemas.offer import OfferRead
 from utils.address_formatter import FormattedAddress
 
 
@@ -61,6 +62,7 @@ class MessageRead(BaseModel):
     type: MessageType
     body: str | None = None
     offer_id: int | None = None
+    offer: OfferRead | None = None
 
     attachments: list[AttachmentRead] = Field(default_factory=list)
     created_at: datetime

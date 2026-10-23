@@ -36,6 +36,10 @@ from core.schemas.offer import OfferCreate, OfferRead
 from core.services.chat_service import ChatService
 from core.services.offer_service import (
     OfferAlreadyPendingError,
+    OfferCannotAcceptOwnError,
+    OfferCannotCounterOwnError,
+    OfferExpiredError,
+    OfferNotPendingError,
     OfferRequestNotFoundError,
     OfferRequestUnavailableError,
     OfferService,
@@ -68,6 +72,61 @@ async def create_order_offer(
         raise HTTPException(
             status.HTTP_409_CONFLICT,
             "У вас уже есть активное предложение по этой заявке",
+        ) from exc
+
+
+@router.post(
+    "/conversations/{conversation_id}/offers/{offer_id}/counter",
+    response_model=OfferRead,
+    status_code=status.HTTP_201_CREATED,
+)
+async def counter_conversation_offer(
+    conversation_id: int,
+    offer_id: int,
+    data: OfferCreate,
+    current: CurrentChatActor,
+    db: DbSession,
+) -> OfferRead:
+    service = OfferService(db)
+    try:
+        return await service.counter(current, conversation_id, offer_id, data)
+    except ConversationNotFoundError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Беседа не найдена") from exc
+    except OfferRequestNotFoundError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Предложение не найдено") from exc
+    except (OfferCannotCounterOwnError, OfferNotPendingError) as exc:
+        raise HTTPException(
+            status.HTTP_409_CONFLICT,
+            "На это предложение нельзя ответить встречной ценой",
+        ) from exc
+
+
+@router.post(
+    "/conversations/{conversation_id}/offers/{offer_id}/accept",
+    response_model=OfferRead,
+    status_code=status.HTTP_200_OK,
+)
+async def accept_conversation_offer(
+    conversation_id: int,
+    offer_id: int,
+    current: CurrentChatActor,
+    db: DbSession,
+) -> OfferRead:
+    service = OfferService(db)
+    try:
+        return await service.accept(current, conversation_id, offer_id)
+    except ConversationNotFoundError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Беседа не найдена") from exc
+    except OfferRequestNotFoundError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Предложение не найдено") from exc
+    except OfferRequestUnavailableError as exc:
+        raise HTTPException(status.HTTP_409_CONFLICT, "Заказ уже закрыт") from exc
+    except OfferExpiredError as exc:
+        raise HTTPException(status.HTTP_409_CONFLICT, "Срок предложения истёк") from exc
+    except (OfferCannotAcceptOwnError, OfferNotPendingError) as exc:
+        raise HTTPException(
+            status.HTTP_409_CONFLICT,
+            "Это предложение больше нельзя принять",
         ) from exc
 
 
